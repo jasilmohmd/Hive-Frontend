@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
-import { UserDataService } from '../../../services/user-data.service';
 import { IUser } from '../../../models/user';
+import { UserAuthService } from '../../../services/user-auth.service';
 
 @Component({
   selector: 'app-profile',
@@ -13,7 +13,7 @@ export class ProfileComponent {
 
   userData: IUser;
 
-  userDataService = inject(UserDataService);
+  userAuthService = inject(UserAuthService);
 
   constructor() {
 
@@ -22,7 +22,7 @@ export class ProfileComponent {
       email: ""
     }
 
-    this.userDataService.getUserDetails().subscribe((res:any)=>{
+    this.userAuthService.getUserDetails().subscribe((res:any)=>{
       if(res){
         this.userData = res.userData
       }

@@ -61,4 +61,10 @@ export class UserAuthService {
     );
   }
 
+  getUserDetails(){
+    return this.http.get(`${this.baseUrl}/details`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
 }
