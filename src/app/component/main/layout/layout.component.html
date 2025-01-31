@@ -1,23 +1,53 @@
 <div class="bg-black m-0 min-h-screen overflow-y-auto flex">
   <!-- Vertical Navigation Bar -->
-  <nav class="bg-gray-950 max-w-20 max-h-screen p-3 mx-3 my-4 rounded-3xl overflow-y-auto box-border">
+  <nav class="bg-[#1B1B1B] max-w-20 max-h-screen p-3 mx-3 my-4 rounded-3xl overflow-y-auto box-border">
     <div class="flex flex-col justify-between h-full">
       <!-- Navigation Links -->
       <ul class="text-white space-y-4">
-        <li><a href="#" class="hover:text-gray-300">Home</a></li>
-        <li><a href="#" class="hover:text-gray-300">About</a></li>
-        <li><a href="#" class="hover:text-gray-300">Services</a></li>
-        <li><a href="#" class="hover:text-gray-300">Contact</a></li>
-        <li><a href="#" class="hover:text-gray-300">Extra Link 1</a></li>
-        <li><a href="#" class="hover:text-gray-300">Extra Link 2</a></li>
-        <li><a href="#" class="hover:text-gray-300">Extra Link 3</a></li>
+        <li>
+          <div class="mt-2 flex justify-center">
+            <a href="/main/friends_section/friends" class="">
+              <img src="assets/images/Logo-bg-white.png" alt="Compass" class="w-14 h-14 rounded-full flex items-center justify-center object-cover">
+            </a>
+          </div>
+        </li>
+        <li>
+          <div class="mt-2 flex justify-center">
+            <a href="" class="">
+              <img src="assets/images/community/Profile/comicbookclub.jpg" alt="Compass" class="w-14 h-14 rounded-full flex items-center justify-center object-cover">
+            </a>
+          </div>
+        </li>
+        <li>
+          <div class="mt-2 flex justify-center">
+            <a href="" class="">
+              <img src="assets/images/community/Profile/comedyclub.jpg" alt="Compass" class="w-14 h-14 rounded-full flex items-center justify-center object-cover">
+            </a>
+          </div>
+        </li>
+        <li>
+          <div class="mt-2 flex justify-center">
+            <a href="" class="">
+              <img src="assets/images/community/Profile/gamingguild.png" alt="Compass" class="w-14 h-14 rounded-full flex items-center justify-center object-cover">
+            </a>
+          </div>
+        </li>
+        
+        <li>
+          <div class="mt-2 flex justify-center">
+            <a href="/main/discover" class="bg-[#333333] text-xs p-3 rounded-full flex items-center justify-center hover:bg-gray-700 hover:text-white">
+              <img src="assets/Icons/plus.png" alt="Compass" class="w-8 h-8">
+            </a>
+          </div>
+        </li>
+
       </ul>
 
       <!-- Footer Section in Navigation -->
 <div class="mt-4 flex justify-center">
-  <button class="bg-gray-800 text-xs p-3 rounded-full flex items-center justify-center hover:bg-gray-700 hover:text-white">
+  <a href="/main/discover" class="bg-[#333333] text-xs p-3 rounded-full flex items-center justify-center hover:bg-gray-700 hover:text-white">
     <img src="assets/Icons/compass-fill.png" alt="Compass" class="w-8 h-8">
-  </button>
+  </a>
 </div>
 
     </div>
@@ -30,12 +60,12 @@
       <h1 class="text-3xl font-bold">Discover</h1>
       <div class="flex space-x-4">
         <p class="cursor-pointer hover:text-gray-300">Settings</p>
-        <p class="cursor-pointer hover:text-gray-300">Profile</p>
+        <a href="/main/profile" class="cursor-pointer hover:text-gray-300">Profile</a>
       </div>
     </header>
 
     <!-- Main Content (Filling Remaining Space) -->
-    <div class="flex-1 bg-gray-900 rounded-2xl box-border overflow-auto p-4">
+    <div class="flex-1 bg-[#1B1B1B] rounded-2xl box-border overflow-auto p-4">
       <router-outlet></router-outlet>
     </div>
   </div>

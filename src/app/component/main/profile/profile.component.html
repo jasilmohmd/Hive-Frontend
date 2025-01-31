@@ -1,0 +1,27 @@
+<div class="bg-[#1B1B1B] text-white rounded-2xl p-6">
+  <!-- Profile Header -->
+  <div class="text-center mb-8">
+    <h2 class="text-3xl font-bold mb-2">Profile</h2>
+    <p class="text-gray-400">Manage your account details</p>
+  </div>
+
+  <!-- User Details -->
+  <div class="space-y-6">
+    <!-- Username -->
+    <div>
+      <h3 class="text-gray-400 text-sm">Username</h3>
+      <p class="text-lg font-medium">{{userData.userName}}</p>
+    </div>
+    <!-- Email -->
+    <div>
+      <h3 class="text-gray-400 text-sm">Email</h3>
+      <p class="text-lg font-medium">{{userData.email}}</p>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="flex space-x-4 mt-4">
+    <button class="bg-blue-600 text-sm px-4 py-2 rounded-md hover:bg-blue-700">Edit Profile</button>
+    <button class="bg-gray-600 text-sm px-4 py-2 rounded-md hover:bg-gray-700">Change Password</button>
+  </div>
+</div>
