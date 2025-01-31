@@ -1,0 +1,43 @@
+<div class="flex flex-col items-center justify-center m-4 sm:m-8">
+  <!-- Error Message Display -->
+  <p *ngIf="errorMessage" class="text-red-500 text-sm text-center">{{ errorMessage }}</p>
+
+  <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 sm:mb-10 text-white text-center drop-shadow-md">Enter OTP</h2>
+  <div class="h-auto sm:h-[60vh] w-[80vw] sm:w-[60vw] lg:w-[40vw] xl:w-[30vw] flex items-center justify-center shadow-lg rounded-2xl bg-gray-600/10 backdrop-blur-lg p-4 sm:p-0">
+    <form [formGroup]="otpForm" (ngSubmit)="onSubmit()" class="w-full sm:w-3/4 max-w-sm flex flex-col">
+      <div class="mb-4">
+        <label for="otp" class="block text-base sm:text-lg md:text-xl font-light text-slate-50">OTP</label>
+        <input 
+          type="string" 
+          id="otp" 
+          formControlName="otp"
+          class="mt-1 block w-full h-7 sm:h-10 p-2 bg-white/20 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-transparent"
+          required
+        />
+        <p *ngIf="otpForm.get('otp')?.invalid && (otpForm.get('otp')?.touched || otpForm.get('otp')?.dirty)" class="text-red-400 text-xs">
+          <span *ngIf="otpForm.get('otp')?.errors?.['required']">OTP is required</span>
+          <span *ngIf="otpForm.get('otp')?.errors?.['minlength']">OTP must be at least 6 digits</span>
+        </p>
+        <!-- Resend OTP Button with Timer -->
+        <button 
+          (click)="resendOtp()" 
+          [disabled]="countdown > 0" 
+          class="mt-3 w-full text-sm sm:text-base font-medium py-2 px-4 rounded-lg transition-all duration-300 ease-in-out 
+                 text-white bg-gray-500 hover:bg-gray-400 cursor-not-allowed disabled:opacity-50 disabled:hover:bg-gray-500"
+          [ngClass]="{ 'bg-[#F3C70D] hover:bg-[#e5b60b] cursor-pointer': countdown === 0 }"
+        >
+          Resend OTP <span *ngIf="countdown > 0">({{ countdown }}s)</span>
+        </button>
+      </div>
+      <button 
+        type="submit"
+        class="w-3/4 sm:w-1/2 font-medium text-base sm:text-lg md:text-xl bg-[#F3C70D] text-white py-2 px-4 rounded-3xl translate-y-1 hover:translate-y-0 hover:drop-shadow-xl focus:translate-y-1 focus:drop-shadow-md mx-auto drop-shadow-md transition-all duration-300 ease-in-out"
+      >
+        Submit
+      </button>
+      <p class="text-xs sm:text-sm md:text-base text-slate-100 font-thin mt-6 text-center">Remember Password? 
+        <a routerLink="/auth/login" class="text-gray-700 hover:text-blue-600 hover:cursor-pointer">Login</a>
+      </p>
+    </form>
+  </div>
+</div>
