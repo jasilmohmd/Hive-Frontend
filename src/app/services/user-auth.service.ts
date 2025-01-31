@@ -1,8 +1,10 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
+import { ILoginCredentials, IRegisterationCredentials, IUser } from '../models/user';
 import { catchError, throwError, Observable } from 'rxjs';
-import { ILoginCredentials, IRegisterationCredentials } from '../models/user';
+
+import { catchError, throwError, Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'

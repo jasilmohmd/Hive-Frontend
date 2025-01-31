@@ -1,13 +1,18 @@
-export interface ILoginCredentials{
-  email: string,
-  password: string
+export interface IRegisterationCredentials {
+  userName: string | undefined;
+  email: string | undefined;
+  password: string | undefined;
+  confirmPassword: string | undefined;
 }
-export interface IRegisterationCredentials{
-  email: string,
-  userName: string,
-  password: string,
-  confirmPassword: string
-}
-export interface IUser {
 
+export interface ILoginCredentials {
+  email: string | undefined;
+  password: string | undefined;
+}
+
+export interface IUser {
+  // _id: string;
+  userName: string;
+  email: string | undefined;
+  // password: string | undefined;
 }
