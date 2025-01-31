@@ -29,6 +29,7 @@ export const routes: Routes = [
       { path: "change_pass", component: ChangePasswordComponent }
     ]
    },
+
    { path: "main", component: AppLayoutComponent, 
       children: [
         { path: "discover" , component: DiscoverComponent},
@@ -45,4 +46,5 @@ export const routes: Routes = [
         { path: "direct_message", component: DirectMessageComponent }
       ]
    }
+
 ];
