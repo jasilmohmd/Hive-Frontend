@@ -54,19 +54,19 @@
   </nav>
 
   <!-- Main Content Area -->
-  <div class="flex-1 flex flex-col pl-1 pr-4 py-4 text-white overflow-hidden">
-    <!-- Header Section -->
-    <header class="flex justify-between items-center h-20 p-3">
-      <h1 class="text-3xl font-bold">Discover</h1>
-      <div class="flex space-x-4">
-        <p class="cursor-pointer hover:text-gray-300">Settings</p>
-        <a href="/main/profile" class="cursor-pointer hover:text-gray-300">Profile</a>
-      </div>
-    </header>
-
-    <!-- Main Content (Filling Remaining Space) -->
-    <div class="flex-1 bg-[#1B1B1B] rounded-2xl box-border overflow-auto p-4">
-      <router-outlet></router-outlet>
+<div class="flex-1 flex flex-col pl-1 pr-4 py-4 text-white overflow-hidden h-screen">
+  <!-- Header Section -->
+  <header class="flex justify-between items-center h-20 p-3">
+    <h1 class="text-3xl font-bold">Discover</h1>
+    <div class="flex space-x-4">
+      <p class="cursor-pointer hover:text-gray-300">Settings</p>
+      <a href="/main/profile" class="cursor-pointer hover:text-gray-300">Profile</a>
     </div>
+  </header>
+
+  <!-- Main Content with Fixed Height and Scroll -->
+  <div class="flex-1 bg-[#1B1B1B] rounded-2xl box-border overflow-y-auto p-4 h-0 min-h-0">
+    <router-outlet></router-outlet>
   </div>
+</div>
 </div>

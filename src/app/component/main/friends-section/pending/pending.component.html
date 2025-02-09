@@ -1,66 +1,18 @@
-<!-- Search Bar Section -->
-<div class="flex items-center mb-4">
-  <input
-    type="text"
-    placeholder="Search friend requests..."
-    class="flex-1 bg-black text-white placeholder-gray-400 px-4 py-2 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500"
-  />
-  <button class="ml-3 bg-[#525252] hover:bg-green-600 text-white px-4 py-2 rounded-2xl">
-    Search
-  </button>
-</div>
-
-<!-- Pending Friend Requests Section -->
+<!-- Pending Friend Requests -->
 <div class="space-y-4">
-  <!-- First Pending Request -->
-  <div class="flex items-center justify-between border-b border-gray-700 px-4 py-2">
+  <div *ngFor="let request of pendingRequests" class="flex items-center justify-between border-b border-gray-700 px-4 py-2">
     <div class="flex items-center space-x-4">
       <div class="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center text-xl font-bold">
-        M
+        {{ request.sender.userName[0] }}
       </div>
-      <span class="text-lg font-medium">Mike Johnson</span>
+      <span class="text-lg font-medium">{{ request.sender.userName }}</span>
     </div>
     <div class="flex items-center space-x-4">
-      <button class="bg-green-500 hover:bg-green-600 px-4 py-2 text-sm rounded-md">
+      <!-- Use correct IDs when calling functions -->
+      <button (click)="acceptRequest( request.sender._id)" class="bg-green-500 hover:bg-green-600 px-4 py-2 text-sm rounded-md">
         Accept
       </button>
-      <button class="bg-red-500 hover:bg-red-600 px-4 py-2 text-sm rounded-md">
-        Decline
-      </button>
-    </div>
-  </div>
-
-  <!-- Second Pending Request -->
-  <div class="flex items-center justify-between border-b border-gray-700 px-4 py-2">
-    <div class="flex items-center space-x-4">
-      <div class="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center text-xl font-bold">
-        S
-      </div>
-      <span class="text-lg font-medium">Sophia Williams</span>
-    </div>
-    <div class="flex items-center space-x-4">
-      <button class="bg-green-500 hover:bg-green-600 px-4 py-2 text-sm rounded-md">
-        Accept
-      </button>
-      <button class="bg-red-500 hover:bg-red-600 px-4 py-2 text-sm rounded-md">
-        Decline
-      </button>
-    </div>
-  </div>
-
-  <!-- Third Pending Request -->
-  <div class="flex items-center justify-between border-b border-gray-700 px-4 py-2">
-    <div class="flex items-center space-x-4">
-      <div class="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center text-xl font-bold">
-        R
-      </div>
-      <span class="text-lg font-medium">Rachel Green</span>
-    </div>
-    <div class="flex items-center space-x-4">
-      <button class="bg-green-500 hover:bg-green-600 px-4 py-2 text-sm rounded-md">
-        Accept
-      </button>
-      <button class="bg-red-500 hover:bg-red-600 px-4 py-2 text-sm rounded-md">
+      <button (click)="rejectRequest( request.sender._id)" class="bg-red-500 hover:bg-red-600 px-4 py-2 text-sm rounded-md">
         Decline
       </button>
     </div>

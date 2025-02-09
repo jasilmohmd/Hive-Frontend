@@ -1,56 +1,53 @@
-<!-- Search Bar Section -->
-<div class="flex items-center mb-4">
-  <input
-    type="text"
-    placeholder="Search friends..."
-    class="flex-1 bg-black text-white placeholder-gray-400 px-4 py-2 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500"
-  />
-  <button class="ml-3 bg-[#525252] hover:bg-green-600 text-white px-4 py-2 rounded-2xl">
-    Search
-  </button>
+<!-- Search Bar Section (Make it Sticky) -->
+<div class="sticky top-0 bg-[#1b1b1b] z-10 transition-transform duration-300"
+  [ngClass]="{ '-translate-y-full opacity-0': !showSearchBar, 'translate-y-0 opacity-100': showSearchBar }"
+  >
+  <div class="flex items-center p-2">
+    <input type="text" placeholder="Search friends..." [(ngModel)]="searchTerm" (input)="searchFriends()"
+      class="flex-1 bg-black text-white placeholder-gray-400 px-4 py-2 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500" />
+  </div>
 </div>
 
-<!-- Direct Messages Section -->
-<div class="space-y-4">
-  <!-- First Friend -->
-  <div class="flex items-center justify-between border-b border-gray-700 px-4 py-2">
-    <div class="flex items-center space-x-4">
-      <div class="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center text-xl font-bold">
-        A
-      </div>
-      <span class="text-lg font-medium">Alice</span>
-    </div>
-    <div class="flex items-center space-x-4">
-      <a routerLink="/main/direct_message" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 text-sm rounded-md">Message</a>
-      <button class="bg-gray-700 hover:bg-gray-600 px-4 py-2 text-sm rounded-md">...</button>
-    </div>
-  </div>
 
-  <!-- Second Friend -->
-  <div class="flex items-center justify-between border-b border-gray-700 px-4 py-2">
-    <div class="flex items-center space-x-4">
-      <div class="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center text-xl font-bold">
-        K
-      </div>
-      <span class="text-lg font-medium">Kylie Smith</span>
-    </div>
-    <div class="flex items-center space-x-4">
-      <button class="bg-gray-700 hover:bg-gray-600 px-4 py-2 text-sm rounded-md">Message</button>
-      <button class="bg-gray-700 hover:bg-gray-600 px-4 py-2 text-sm rounded-md">...</button>
-    </div>
-  </div>
 
-  <!-- Third Friend -->
-  <div class="flex items-center justify-between border-b border-gray-700 px-4 py-2">
+<!-- Show error if no friends found (Only after searching) -->
+<div *ngIf="hasSearched && filteredFriends.length === 0" class="text-red-500 text-center">
+  No friends found.
+</div>
+
+<!-- Friends List -->
+<div class="space-y-4" (window:scroll)="onScroll()">
+  <div *ngFor="let friend of filteredFriends"
+    class="flex items-center justify-between border-b border-gray-700 px-4 py-2">
     <div class="flex items-center space-x-4">
       <div class="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center text-xl font-bold">
-        J
+        {{ friend.userName[0] }}
       </div>
-      <span class="text-lg font-medium">John Doe</span>
+      <span class="text-lg font-medium">{{ friend.userName }}</span>
     </div>
     <div class="flex items-center space-x-4">
-      <button class="bg-gray-700 hover:bg-gray-600 px-4 py-2 text-sm rounded-md">Message</button>
-      <button class="bg-gray-700 hover:bg-gray-600 px-4 py-2 text-sm rounded-md">...</button>
+      <a routerLink="/main/direct_message"
+        class="bg-gray-700 hover:bg-gray-600 px-4 py-2 text-sm rounded-md">Message</a>
+      <!-- Dropdown Menu for Unfriend and Block -->
+      <div class="relative">
+        <!-- Dropdown Toggle Button -->
+        <button (click)="toggleDropdown(friend._id)" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 text-sm rounded-md">
+          ...
+        </button>
+
+        <!-- Dropdown Menu -->
+        <div *ngIf="dropdownOpen === friend._id"
+          class="absolute right-0 mt-2 w-40 bg-gray-800 rounded-md shadow-lg z-50">
+          <button (click)="unfriend(friend._id)"
+            class="block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-700">
+            Unfriend
+          </button>
+          <button (click)="blockUser(friend._id)"
+            class="block w-full text-left px-4 py-2 text-sm text-yellow-500 hover:bg-gray-700">
+            Block User
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
