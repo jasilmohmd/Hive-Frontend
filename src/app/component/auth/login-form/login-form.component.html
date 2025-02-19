@@ -20,7 +20,7 @@
           class="mt-1 block w-full h-7 sm:h-10 p-2 bg-white/20 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-transparent"
           required
         />
-        <p *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="text-red-400 text-xs">
+        <p *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="text-red-500 text-xs">
           <span *ngIf="loginForm.get('email')?.errors?.['required']">Email is required</span>
           <span *ngIf="loginForm.get('email')?.errors?.['email']">Invalid email format</span>
         </p>
@@ -36,7 +36,7 @@
           class="mt-1 block w-full h-7 sm:h-10 p-2 bg-white/20 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-transparent"
           required
         />
-        <p *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" class="text-red-400 text-xs">
+        <p *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched" class="text-red-500 text-xs">
           <span *ngIf="loginForm.get('password')?.errors?.['required']">Password is required</span>
           <span *ngIf="loginForm.get('password')?.errors?.['minlength']">Password must be at least 6 characters</span>
         </p>
@@ -48,7 +48,12 @@
         type="submit"
         (click)="onLogin()"
         [disabled]="loginForm.invalid"
-        class="w-3/4 sm:w-1/2 font-medium text-base sm:text-lg md:text-xl bg-[#F3C70D] text-white py-2 px-4 rounded-3xl translate-y-1 hover:translate-y-0 hover:drop-shadow-xl focus:translate-y-1 focus:drop-shadow-md mx-auto drop-shadow-md transition-all duration-300 ease-in-out"
+        [ngClass]="
+        loginForm.invalid 
+          ? 'opacity-50 translate-y-0' 
+          : 'translate-y-1 hover:translate-y-0 cursor-pointer'
+      "
+      class="w-3/4 sm:w-1/2 font-medium text-base sm:text-lg md:text-xl bg-[#F3C70D] text-white py-2 px-4 rounded-3xl mx-auto drop-shadow-md transition-all duration-300 ease-in-out"
       >
         Submit
       </button>
