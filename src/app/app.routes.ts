@@ -5,6 +5,7 @@ import { RegisterFormComponent } from './component/auth/register-form/register-f
 import { LandingPageComponent } from './component/landing-page/landing-page.component';
 import { OtpComponent } from './component/auth/otp/otp.component';
 import { ChangePasswordComponent } from './component/auth/change-password/change-password.component';
+import { ChangePasswordComponent as ProfileChangePasswordComponent } from './component/main/profile/change-password/change-password.component';
 import { LayoutComponent as AppLayoutComponent } from './component/main/layout/layout.component';
 import { LayoutComponent as FriendSectionLayoutComponent } from './component/main/friends-section/layout/layout.component';
 import { DiscoverComponent } from './component/main/discover/discover.component';
@@ -17,6 +18,7 @@ import { BlockedComponent } from './component/main/friends-section/blocked/block
 import { DirectMessageComponent } from './component/main/direct-message/direct-message.component';
 import { EmailVerifyComponent } from './component/auth/email-verify/email-verify.component';
 import { AuthGuardChild } from './guards/auth.guard';
+import { EditProfileComponent } from './component/main/profile/edit-profile/edit-profile.component';
 
 
 export const routes: Routes = [
@@ -38,6 +40,8 @@ export const routes: Routes = [
     children: [
       { path: "discover", component: DiscoverComponent },
       { path: "profile", component: ProfileComponent },
+      { path: "edit_profile", component: EditProfileComponent },
+      { path: 'change_password', component: ProfileChangePasswordComponent },
       {
         path: "friends_section", component: FriendSectionLayoutComponent,
         children: [
