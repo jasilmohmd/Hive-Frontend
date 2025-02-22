@@ -3,11 +3,14 @@ import { FriendService } from '../../../../services/friends.service';
 import { forkJoin } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { TableAction, TableColumn } from '../../../../interface/table.interface';
+import { CommonTableComponent } from '../../../common/common-table/common-table.component';
+import { CommonModalComponent } from '../../../common/common-modal/common-modal.component';
 
 @Component({
   selector: 'app-blocked',
   standalone: true,
-  imports: [CommonModule,FormsModule],
+  imports: [CommonModule, FormsModule, CommonTableComponent, CommonModalComponent],
   templateUrl: './blocked.component.html',
   styleUrl: './blocked.component.css'
 })
@@ -18,10 +21,27 @@ export class BlockedComponent {
   hasSearched: boolean = false;     // Flag to determine if a search was performed
   errorMessage: string = '';
 
-  // Replace 'user123' with the authenticated user's ID as needed
-  private currentUserId: string = 'user123';
+  // Define columns (example: only username)
+  tableColumns: TableColumn[] = [
+    { header: 'Profile', field: 'profilePicture', isImage: true },
+    { header: 'Username', field: 'userName' }
+  ];
 
-  constructor(private friendService: FriendService) {}
+  // Define primary action: Message button (always visible)
+  primaryActions: TableAction[] = [
+    {
+      label: 'Unblock',
+      action: (row: any) => this.requestConfirmation(row._id),
+      class: '!bg-red-500 hover:!bg-red-600 px-4 py-2 text-sm rounded-md',
+      display: "label"
+    }
+  ];
+
+  // For confirmation modal
+  confirmModalVisible: boolean = false;
+  pendingAction: { friendId: string } | null = null;
+
+  constructor(private friendService: FriendService) { }
 
   ngOnInit(): void {
     this.loadBlockedUsers();
@@ -41,7 +61,7 @@ export class BlockedComponent {
       }
     });
   }
-  
+
 
   // Filter blocked users based on search input
   searchBlockedUsers(): void {
@@ -58,9 +78,28 @@ export class BlockedComponent {
     );
   }
 
+  // Instead of directly calling confirm(), we set the pending action and show the modal.
+  requestConfirmation( friendId: string): void {
+    this.pendingAction = { friendId };
+    this.confirmModalVisible = true;
+  }
+
+  // Called when the user confirms the action in the modal.
+  handleConfirmation(): void {
+    if (!this.pendingAction) return;
+    this.unblockUser(this.pendingAction.friendId);
+    this.pendingAction = null;
+    this.confirmModalVisible = false;
+  }
+
+  // Called when the user cancels the confirmation.
+  cancelConfirmation(): void {
+    this.pendingAction = null;
+    this.confirmModalVisible = false;
+  }
+
   // Unblock a user
   unblockUser(blockedUserId: string): void {
-    if (confirm('Are you sure you want to unblock this user?')) {
       this.friendService.unblockUser(blockedUserId).subscribe({
         next: () => {
           // Remove the unblocked user from both arrays
@@ -72,6 +111,6 @@ export class BlockedComponent {
           this.errorMessage = 'Failed to unblock user.';
         }
       });
-    }
+      
   }
 }

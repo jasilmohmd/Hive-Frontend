@@ -1,3 +1,13 @@
+
+<!-- Confirmation Modal -->
+<app-common-modal 
+  *ngIf="confirmModalVisible"
+  title="Confirmation"
+  message="Are you sure you want to Unblock this user"
+  (confirmed)="handleConfirmation()"
+  (cancelled)="cancelConfirmation()">
+</app-common-modal>
+
 <!-- Search Bar Section -->
 <div class="flex items-center mb-4">
   <input
@@ -18,7 +28,7 @@
 </div>
 
 <!-- Blocked Users List -->
-<div class="space-y-4">
+<!-- <div class="space-y-4">
   <div *ngFor="let user of filteredBlockedUsers" class="flex items-center justify-between border-b border-gray-700 px-4 py-2">
     <div class="flex items-center space-x-4">
       <div class="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center text-xl font-bold">
@@ -32,4 +42,10 @@
       </button>
     </div>
   </div>
-</div>
+</div> -->
+
+<app-common-table 
+[data]="filteredBlockedUsers"
+  [columns]="tableColumns"
+  [primaryActions]="primaryActions">
+</app-common-table>

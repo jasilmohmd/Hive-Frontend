@@ -25,14 +25,20 @@
   <div *ngIf="isLoading" class="text-white mt-2">Loading...</div>
 
   <!-- Display search results -->
-  <ul *ngIf="searchResults.length > 0" class="mt-4 text-white">
+  <!-- <ul *ngIf="searchResults.length > 0" class="mt-4 text-white">
     <li *ngFor="let user of searchResults" class="flex items-center justify-between py-2 border-b border-gray-700">
       <span>{{ user.userName }} ({{ user.email }})</span>
       <button (click)="sendFriendRequest(user._id)" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">
         Add Friend
       </button>
     </li>
-  </ul>
+  </ul> -->
+
+  <app-common-table 
+  [data]="searchResults"
+  [columns]="tableColumns"
+  [primaryActions]="primaryActions">
+</app-common-table>
 
   <!-- No results found message (only shows after a search) -->
   <p *ngIf="hasSearched && !isLoading && searchResults.length === 0" class="text-gray-400 mt-4">
