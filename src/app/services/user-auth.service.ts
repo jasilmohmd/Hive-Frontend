@@ -1,8 +1,8 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
+import { ILoginCredentials, IRegisterationCredentials, IUser } from '../models/user';
 import { catchError, throwError, Observable } from 'rxjs';
-import { ILoginCredentials, IRegisterationCredentials } from '../models/user';
 
 @Injectable({
   providedIn: 'root'
@@ -57,6 +57,12 @@ export class UserAuthService {
 
   setNewPassword(email: string, newPassword: string, confirmPassword: string): Observable<any> {
     return this.http.post(`${this.baseUrl}/set_new_password`, {email, newPassword, confirmPassword }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getUserDetails(){
+    return this.http.get(`${this.baseUrl}/details`).pipe(
       catchError(this.handleError)
     );
   }

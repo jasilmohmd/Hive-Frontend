@@ -1,0 +1,47 @@
+<!-- Pending Friend Requests -->
+<!-- <div class="space-y-4">
+  <div *ngFor="let request of pendingRequests" class="flex items-center justify-between border-b border-gray-700 px-4 py-2">
+    <div class="flex items-center space-x-4">
+      <div class="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center text-xl font-bold">
+        {{ request.sender.userName[0] }}
+      </div>
+      <span class="text-lg font-medium">{{ request.sender.userName }}</span>
+    </div>
+    <div class="flex items-center space-x-4"> -->
+      <!-- Use correct IDs when calling functions -->
+      <!-- <button (click)="acceptRequest( request.sender._id)" class="bg-green-500 hover:bg-green-600 px-4 py-2 text-sm rounded-md">
+        Accept
+      </button>
+      <button (click)="rejectRequest( request.sender._id)" class="bg-red-500 hover:bg-red-600 px-4 py-2 text-sm rounded-md">
+        Decline
+      </button>
+    </div>
+  </div>
+</div> -->
+
+<!-- Search Bar Section -->
+<div class="flex items-center mb-4">
+  <input
+    type="text"
+    placeholder="Search pending requests..."
+    [(ngModel)]="searchTerm"
+    (input)="searchRequests()"
+    class="flex-1 bg-black text-white placeholder-gray-400 px-4 py-2 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500"
+  />
+  <button (click)="searchRequests()" class="ml-3 bg-[#525252] hover:bg-green-600 text-white px-4 py-2 rounded-2xl">
+    Search
+  </button>
+</div>
+
+<!-- Show error if no pending requests found -->
+<div *ngIf="hasSearched && filteredRequests.length === 0" class="text-red-500 text-center">
+  No pending requests found.
+</div>
+
+<!-- Pending Requests Table -->
+<app-common-table 
+  [data]="filteredRequests"
+  [columns]="tableColumns"
+  [primaryActions]="primaryActions">
+</app-common-table>
+

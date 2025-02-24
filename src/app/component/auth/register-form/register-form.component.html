@@ -47,9 +47,14 @@
 
       <!-- Submit Button -->
       <button 
-        type="submit"
-        [disabled]="registerForm.invalid"
-        class="w-3/4 sm:w-1/2 font-medium text-base sm:text-lg md:text-xl bg-[#F3C70D] text-white py-2 px-4 rounded-3xl translate-y-1 hover:translate-y-0 hover:drop-shadow-xl focus:translate-y-1 focus:drop-shadow-md mx-auto drop-shadow-md transition-all duration-300 ease-in-out"
+      type="submit" 
+      [disabled]="registerForm.invalid"
+      [ngClass]="
+        registerForm.invalid 
+          ? 'opacity-50 translate-y-0' 
+          : 'translate-y-1 hover:translate-y-0 cursor-pointer'
+      "
+      class="w-3/4 sm:w-1/2 font-medium text-base sm:text-lg md:text-xl bg-[#F3C70D] text-white py-2 px-4 rounded-3xl mx-auto drop-shadow-md transition-all duration-300 ease-in-out"
       >
         Continue
       </button>

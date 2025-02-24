@@ -1,0 +1,52 @@
+<div>
+  <table class="min-w-full">
+    <tbody>
+      <tr *ngFor="let row of data" class="flex w-full items-center border-b border-gray-700">
+        <!-- Left Cell: Profile & Username -->
+        <td class="flex-1 px-4 py-2">
+          <div class="flex items-center space-x-4">
+            <!-- Profile Picture -->
+            <ng-container *ngIf="row.profilePicture; else fallback">
+              <img [src]="row.profilePicture" alt="{{ row.userName }}" class="w-12 h-12 rounded-full object-cover">
+            </ng-container>
+            <ng-template #fallback>
+              <div class="w-12 h-12 bg-slate-500 rounded-full flex items-center justify-center text-2xl font-medium">
+                {{ row.userName[0] | uppercase }}
+              </div>
+            </ng-template>
+            <!-- Username -->
+            <span class="text-lg font-medium">{{ row.userName }}</span>
+          </div>
+        </td>
+        <!-- Right Cell: Actions -->
+        <td class="px-4 py-2 text-right">
+          <div class="flex items-center justify-end space-x-2">
+            <!-- Primary Action (always visible) -->
+            <button 
+              *ngFor="let act of primaryActions" 
+              (click)="act.action(row)"
+              [ngClass]="act.class"
+              class="flex items-center justify-center px-2 py-2 rounded-full bg-[#050709]">
+              <ng-container *ngIf="(act.display || 'both') !== 'label'">
+                <img *ngIf="act.icon" [src]="act.icon" alt="icon" class="w-6 h-6">
+              </ng-container>
+              <ng-container *ngIf="(act.display || 'both') !== 'icon'">
+                <span>{{ act.label }}</span>
+              </ng-container>
+            </button>
+
+            <!-- Secondary Actions Dropdown -->
+            <div class="dropdown-container relative" *ngIf="secondaryActions?.length">
+              <app-common-dropdown 
+                [items]="secondaryActions" 
+                [isOpen]="dropdownOpen === row"
+                (isOpenChange)="dropdownOpen = ($event ? row : null)"
+                (itemSelected)="onSecondaryAction($event, row)">
+              </app-common-dropdown>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

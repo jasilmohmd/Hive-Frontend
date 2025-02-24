@@ -1,0 +1,47 @@
+<!-- Success/Error Modal at Top -->
+<div *ngIf="successMessage || errorMessage" class="fixed top-4 left-1/2 transform -translate-x-1/2 w-[90%] max-w-md bg-opacity-90 px-4 py-2 text-center rounded-md z-50"
+     [ngClass]="{'bg-green-500 text-white': successMessage, 'bg-red-500 text-white': errorMessage}">
+  {{ successMessage || errorMessage }}
+</div>
+
+<!-- Add Friend Section -->
+<div class="bg-[#1B1B1B] p-4 rounded-2xl mb-4">
+  <h2 class="text-xl font-semibold text-white mb-2">Add Friend</h2>
+  <p class="text-sm text-gray-400 mb-4">You can add friends using their Hive username.</p>
+  
+  <div class="flex items-center space-x-3">
+    <input
+      type="text"
+      placeholder="Enter username..."
+      class="flex-1 bg-[#333333] text-white placeholder-gray-500 px-4 py-2 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500"
+      [(ngModel)]="searchTerm"
+    />
+    <button (click)="searchUser()" class="bg-green-500 hover:bg-green-600 text-white px-5 py-2 rounded-2xl font-medium">
+      Search
+    </button>
+  </div>
+
+  <!-- Loading Indicator -->
+  <div *ngIf="isLoading" class="text-white mt-2">Loading...</div>
+
+  <!-- Display search results -->
+  <!-- <ul *ngIf="searchResults.length > 0" class="mt-4 text-white">
+    <li *ngFor="let user of searchResults" class="flex items-center justify-between py-2 border-b border-gray-700">
+      <span>{{ user.userName }} ({{ user.email }})</span>
+      <button (click)="sendFriendRequest(user._id)" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">
+        Add Friend
+      </button>
+    </li>
+  </ul> -->
+
+  <app-common-table 
+  [data]="searchResults"
+  [columns]="tableColumns"
+  [primaryActions]="primaryActions">
+</app-common-table>
+
+  <!-- No results found message (only shows after a search) -->
+  <p *ngIf="hasSearched && !isLoading && searchResults.length === 0" class="text-gray-400 mt-4">
+    No users found.
+  </p>
+</div>

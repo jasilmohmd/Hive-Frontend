@@ -1,0 +1,67 @@
+<!-- Confirmation Modal -->
+<app-common-modal 
+  *ngIf="confirmModalVisible"
+  title="Confirmation"
+  [message]="pendingAction?.type === 'unfriend' ? 'Are you sure you want to unfriend this user?' : 'Are you sure you want to block this user?'"
+  (confirmed)="handleConfirmation()"
+  (cancelled)="cancelConfirmation()">
+</app-common-modal>
+
+<!-- Search Bar Section (Sticky) -->
+<div class="sticky top-0 bg-[#1b1b1b] z-10 transition-transform duration-300"
+  [ngClass]="{ '-translate-y-full opacity-0': !showSearchBar, 'translate-y-0 opacity-100': showSearchBar }">
+  <div class="flex items-center p-2">
+    <input type="text" placeholder="Search friends..." [(ngModel)]="searchTerm" (input)="searchOnlineFriends()"
+      class="flex-1 bg-black text-white placeholder-gray-400 px-4 py-2 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500" />
+  </div>
+</div>
+
+<!-- Show error if no online friends found (Only after searching) -->
+<div *ngIf="hasSearched && filteredOnlineFriends.length === 0" class="text-red-500 text-center">
+  No friends found.
+</div>
+
+<!-- Online Friends List -->
+<!-- <div class="space-y-4" (window:scroll)="onScroll()">
+  <div *ngFor="let friend of filteredOnlineFriends"
+    class="flex items-center justify-between border-b border-gray-700 px-4 py-2">
+    <div class="flex items-center space-x-4">
+      <div class="w-12 h-12 bg-gray-700 rounded-full flex items-center justify-center text-xl font-bold">
+        {{ friend.userName[0] }}
+      </div>
+      <span class="text-lg font-medium">{{ friend.userName }}</span>
+    </div>
+    <div class="flex items-center space-x-4">
+      <a routerLink="/main/direct_message"
+        class="bg-gray-700 hover:bg-gray-600 px-4 py-2 text-sm rounded-md">Message</a> -->
+      <!-- Dropdown Menu for Actions -->
+      <!-- <div class="relative"> -->
+        <!-- Dropdown Toggle Button -->
+        <!-- <button (click)="toggleDropdown(friend._id)" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 text-sm rounded-md">
+          ...
+        </button> -->
+
+        <!-- Dropdown Menu -->
+        <!-- <div *ngIf="dropdownOpen === friend._id"
+          class="absolute right-0 mt-2 w-40 bg-gray-800 rounded-md shadow-lg z-50">
+          <button (click)="unfriend(friend._id)"
+            class="block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-700">
+            Unfriend
+          </button>
+          <button (click)="blockUser(friend._id)"
+            class="block w-full text-left px-4 py-2 text-sm text-yellow-500 hover:bg-gray-700">
+            Block User
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> -->
+
+
+<app-common-table 
+[data]="filteredOnlineFriends"
+  [columns]="tableColumns"
+  [primaryActions]="primaryActions"
+  [secondaryActions]="secondaryActions">
+</app-common-table>
