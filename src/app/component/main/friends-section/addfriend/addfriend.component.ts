@@ -2,11 +2,13 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { FriendService } from '../../../../services/friends.service';
+import { CommonTableComponent } from '../../../common/common-table/common-table.component';
+import { TableAction, TableColumn } from '../../../../interface/table.interface';
 
 @Component({
   selector: 'app-addfriend',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule,CommonTableComponent],
   templateUrl: './addfriend.component.html',
   styleUrls: ['./addfriend.component.css']
 })
@@ -17,6 +19,24 @@ export class AddfriendComponent {
   errorMessage: string = '';
   successMessage: string = '';
   hasSearched: boolean = false; // New state to track if search was performed
+
+
+  // Define columns (example: only username)
+    tableColumns: TableColumn[] = [
+      { header: 'Profile', field: 'profilePicture', isImage: true },
+      { header: 'Username', field: 'userName' }
+    ];
+  
+    // Define primary action: Message button (always visible)
+    primaryActions: TableAction[] = [
+      {
+        label: 'Send Request',
+        action: (row: any) => this.sendFriendRequest(row._id),
+        class: '!bg-green-500 hover:!bg-green-600 px-4 py-2 text-sm rounded-md',
+        display: "label"
+      }
+    ];
+
 
   constructor(private friendService: FriendService) {}
 
@@ -37,10 +57,17 @@ export class AddfriendComponent {
 
     this.friendService.searchUserByUsername(trimmedUsername)
       .subscribe({
-        next: (results) => {
-          this.searchResults = results;
+        next: (response: any []) => {
+          this.searchResults = response.map(req => ({
+            profilePicture: req?.profilePicture, // may be undefined if not provided
+            userName: req.userName,
+            _id: req._id,
+            sender: req  // preserve original if needed
+          }));
+          console.log(this.searchResults);
+          
           this.isLoading = false;
-          if (results.length === 0) {
+          if (response.length === 0) {
             this.errorMessage = 'No users found.';
           }
         },

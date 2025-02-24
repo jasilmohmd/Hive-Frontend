@@ -1,13 +1,16 @@
 import { ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { FriendService } from '../../../../services/friends.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { CommonTableComponent } from '../../../common/common-table/common-table.component';
+import { TableAction, TableColumn } from '../../../../interface/table.interface';
+import { CommonModalComponent } from '../../../common/common-modal/common-modal.component';
 
 @Component({
   selector: 'app-friends',
   standalone: true,
-  imports: [RouterLink, CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CommonTableComponent, CommonModalComponent],
   templateUrl: './friends.component.html',
   styleUrl: './friends.component.css'
 })
@@ -21,6 +24,44 @@ export class FriendsComponent implements OnInit {
 
   showSearchBar = true;
   private lastScrollTop = 0;
+
+
+  // Define columns (example: only username)
+  tableColumns: TableColumn[] = [
+    { header: 'Profile', field: 'profilePicture', isImage: true },
+    { header: 'Username', field: 'userName' }
+  ];
+
+  // Define primary action: Message button (always visible)
+  primaryActions: TableAction[] = [
+    {
+      label: 'Message',
+      action: (row: any) => this.message(row),
+      class: 'hover:bg-slate-800 px-4 py-2 text-sm rounded-full',
+      icon: "assets/Icons/message-circle.png",
+      display: "icon"
+    }
+  ];
+
+  // Define secondary actions: Unfriend and Block User in dropdown
+  secondaryActions: TableAction[] = [
+    {
+      label: 'Unfriend',
+      action: (row: any) => this.requestConfirmation('unfriend', row._id),
+      // class: 'bg-red-500 hover:bg-red-600 px-4 py-2 text-sm rounded-md'
+    },
+    {
+      label: 'Block User',
+      action: (row: any) => this.requestConfirmation('block', row._id),
+      // class: 'bg-yellow-500 hover:bg-yellow-600 px-4 py-2 text-sm rounded-md'
+    }
+  ];
+
+
+  // For confirmation modal
+  confirmModalVisible: boolean = false;
+  pendingAction: { type: 'unfriend' | 'block', friendId: string } | null = null;
+
 
   constructor(private router: Router, private friendsService: FriendService, private cdr: ChangeDetectorRef) { }
 
@@ -87,33 +128,64 @@ export class FriendsComponent implements OnInit {
     );
   }
 
-  unfriend(friendId: string): void {
-    if (confirm('Are you sure you want to unfriend this user?')) {
-      this.friendsService.unfriendUser(friendId).subscribe({
-        next: () => {
-          this.filteredFriends = this.filteredFriends.filter(friend => friend.id !== friendId);
-        },
-        error: (error) => {
-          console.error('Error unfriending user:', error);
-        }
-      });
+
+  // Instead of directly calling confirm(), we set the pending action and show the modal.
+  requestConfirmation(actionType: 'unfriend' | 'block', friendId: string): void {
+    this.pendingAction = { type: actionType, friendId };
+    this.confirmModalVisible = true;
+  }
+
+  // Called when the user confirms the action in the modal.
+  handleConfirmation(): void {
+    if (!this.pendingAction) return;
+    if (this.pendingAction.type === 'unfriend') {
+      this.unfriend(this.pendingAction.friendId);
+    } else if (this.pendingAction.type === 'block') {
+      this.blockUser(this.pendingAction.friendId);
     }
+    this.pendingAction = null;
+    this.confirmModalVisible = false;
+  }
+
+  // Called when the user cancels the confirmation.
+  cancelConfirmation(): void {
+    this.pendingAction = null;
+    this.confirmModalVisible = false;
+  }
+
+
+  unfriend(friendId: string): void {
+
+    this.friendsService.unfriendUser(friendId).subscribe({
+      next: () => {
+        this.filteredFriends = this.filteredFriends.filter(friend => friend.id !== friendId);
+      },
+      error: (error) => {
+        console.error('Error unfriending user:', error);
+      }
+    });
+
   }
 
 
   blockUser(friendId: string): void {
-    if (confirm('Are you sure you want to block this user?')) {
-      console.log(friendId);
-      
-      this.friendsService.blockUser(friendId).subscribe({
-        next: () => {
-          this.filteredFriends = this.filteredFriends.filter(friend => friend.id !== friendId);
-        },
-        error: (error) => {
-          console.error('Error blocking user:', error);
-        }
-      });
-    }
+
+    console.log(friendId);
+
+    this.friendsService.blockUser(friendId).subscribe({
+      next: () => {
+        this.filteredFriends = this.filteredFriends.filter(friend => friend.id !== friendId);
+      },
+      error: (error) => {
+        console.error('Error blocking user:', error);
+      }
+    });
+
+  }
+
+  message(row: any): void {
+    // Implement your messaging logic here
+    console.log('Message action for:', row);
   }
 
 
@@ -124,7 +196,7 @@ export class FriendsComponent implements OnInit {
   @HostListener('window:scroll', [])
   onScroll() {
     console.log("hi");
-    
+
     const scrollTop = window.scrollY || document.documentElement.scrollTop;
 
     if (scrollTop > this.lastScrollTop + 10) {
