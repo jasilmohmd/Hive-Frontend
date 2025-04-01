@@ -19,6 +19,14 @@ import { DirectMessageComponent } from './component/main/direct-message/direct-m
 import { EmailVerifyComponent } from './component/auth/email-verify/email-verify.component';
 import { AuthGuardChild } from './guards/auth.guard';
 import { EditProfileComponent } from './component/main/profile/edit-profile/edit-profile.component';
+import { ComunityLayoutComponent } from './component/main/community/layout/layout.component';
+import { CreateCommunityLayoutComponent } from './component/main/create-community/layout/layout.component';
+import { CommunityCreateStepOneComponent } from './component/main/create-community/step-one/step-one.component';
+import { CommunityCreateStepTwoComponent } from './component/main/create-community/step-two/step-two.component';
+import { CommunityCreateStepThreeComponent } from './component/main/create-community/step-three/step-three.component';
+import { AboutComponent } from './component/main/community/about/about.component';
+import { ChatroomComponent } from './component/main/community/chatroom/chatroom.component';
+import { VoiceroomComponent } from './component/main/community/voiceroom/voiceroom.component';
 
 
 export const routes: Routes = [
@@ -52,7 +60,25 @@ export const routes: Routes = [
           { path: "addfriend", component: AddfriendComponent }
         ]
       },
-      { path: "direct_message", component: DirectMessageComponent }
+      { path: "direct_message", component: DirectMessageComponent },
+      { path: "community/:id", component: ComunityLayoutComponent, 
+        children: [
+          { path: '', redirectTo: 'about', pathMatch: 'full' },
+          { path: "about", component: AboutComponent },
+          { path: "chatroom/:channelId", component: ChatroomComponent },
+          { path: "voiceroom/:channelId", component: VoiceroomComponent },
+        ]
+      },
+      {
+        path: 'community/create',
+        component: CreateCommunityLayoutComponent,
+        children: [
+          { path: '', redirectTo: 'step-one', pathMatch: 'full' },
+          { path: 'step-one', component: CommunityCreateStepOneComponent },
+          { path: 'step-two', component: CommunityCreateStepTwoComponent },
+          { path: 'step-three', component: CommunityCreateStepThreeComponent },
+        ]
+      }
     ]
   },
   { path: "",canActivateChild: [AuthGuardChild], component: LandingPageComponent }

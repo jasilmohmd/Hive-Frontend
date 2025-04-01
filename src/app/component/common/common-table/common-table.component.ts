@@ -16,6 +16,12 @@ export class CommonTableComponent {
   @Input() primaryActions: TableAction[] = [];
   @Input() secondaryActions: TableAction[] = [];
 
+  /**
+   * If true, fallback displays the first letter of the channel name.
+   * If false, the fallback will be empty.
+   */
+  @Input() showFallbackInitial: boolean = true;
+
   dropdownOpen: any = null;
 
   constructor(private elementRef: ElementRef) {}

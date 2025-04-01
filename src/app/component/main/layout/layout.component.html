@@ -1,6 +1,9 @@
 <div class="bg-black m-0 min-h-screen overflow-y-auto flex">
+
+  <create-community-layout *ngIf="showCommunityCreateModal" (close)="toggleCommunityCreateModal()"></create-community-layout>
+
   <!-- Vertical Navigation Bar -->
-  <nav class="bg-[#1B1B1B] max-w-20 max-h-screen p-3 mx-3 my-4 rounded-3xl overflow-y-auto box-border">
+  <nav class="bg-zinc-900 max-w-20 max-h-screen p-3 mx-3 my-4 rounded-3xl overflow-y-auto box-border">
     <div class="flex flex-col justify-between h-full">
       <!-- Navigation Links -->
       <ul class="text-white space-y-4">
@@ -11,33 +14,20 @@
             </a>
           </div>
         </li>
-        <li>
+
+        <li *ngFor="let community of communities">
           <div class="mt-2 flex justify-center">
-            <a href="" class="">
-              <img src="assets/images/community/Profile/comicbookclub.jpg" alt="Compass" class="w-14 h-14 rounded-full flex items-center justify-center object-cover">
-            </a>
-          </div>
-        </li>
-        <li>
-          <div class="mt-2 flex justify-center">
-            <a href="" class="">
-              <img src="assets/images/community/Profile/comedyclub.jpg" alt="Compass" class="w-14 h-14 rounded-full flex items-center justify-center object-cover">
-            </a>
-          </div>
-        </li>
-        <li>
-          <div class="mt-2 flex justify-center">
-            <a href="" class="">
-              <img src="assets/images/community/Profile/gamingguild.png" alt="Compass" class="w-14 h-14 rounded-full flex items-center justify-center object-cover">
+            <a [routerLink]="['/main','community', community._id]" class="">
+              <img [src]="getSafeUrl(community.imageUrl)" alt="Compass" class="w-14 h-14 rounded-full flex items-center justify-center object-cover">
             </a>
           </div>
         </li>
         
         <li>
           <div class="mt-2 flex justify-center">
-            <a href="/main/discover" class="bg-[#333333] text-xs p-3 rounded-full flex items-center justify-center hover:bg-gray-700 hover:text-white">
+            <button (click)="toggleCommunityCreateModal()" class="bg-[#333333] text-xs p-3 rounded-full flex items-center justify-center hover:bg-gray-700 hover:text-white">
               <img src="assets/Icons/plus.png" alt="Compass" class="w-8 h-8">
-            </a>
+            </button>
           </div>
         </li>
 
@@ -65,7 +55,7 @@
   </header>
 
   <!-- Main Content with Fixed Height and Scroll -->
-  <div class="flex-1 bg-[#1B1B1B] rounded-2xl box-border overflow-y-auto p-4 h-0 min-h-0">
+  <div class="flex-1 rounded-2xl box-border overflow-hidden">
     <router-outlet></router-outlet>
   </div>
 </div>

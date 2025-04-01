@@ -1,41 +1,61 @@
-<div>
-  <table class="min-w-full">
+<div class="min-w-full">
+  <table class="w-full">
+    <thead>
+      <tr class="border-b border-gray-700">
+        <!-- Data Column Headers -->
+        <ng-container *ngFor="let col of columns">
+          <th class="px-4 py-2 text-left text-sm font-thin text-zinc-400" 
+              [class.w-[200px]]="col.field === 'profilePicture'">
+            {{ col.header }}
+          </th>
+        </ng-container>
+        <!-- Empty Header for Actions Column -->
+        <th class="px-4 py-2 text-right text-sm font-thin text-zinc-400 w-[120px]"></th>
+      </tr>
+    </thead>
     <tbody>
-      <tr *ngFor="let row of data" class="flex w-full items-center border-b border-gray-700">
-        <!-- Left Cell: Profile & Username -->
-        <td class="flex-1 px-4 py-2">
-          <div class="flex items-center space-x-4">
-            <!-- Profile Picture -->
-            <ng-container *ngIf="row.profilePicture; else fallback">
-              <img [src]="row.profilePicture" alt="{{ row.userName }}" class="w-12 h-12 rounded-full object-cover">
-            </ng-container>
-            <ng-template #fallback>
-              <div class="w-12 h-12 bg-slate-500 rounded-full flex items-center justify-center text-2xl font-medium">
-                {{ row.userName[0] | uppercase }}
+      <tr *ngFor="let row of data" class="border-b border-gray-700 hover:bg-zinc-900/50 transition-colors">
+        <!-- Data Columns -->
+        <ng-container *ngFor="let col of columns">
+          <td class="px-4 py-2 align-middle">
+            <ng-container [ngSwitch]="col.field">
+              <!-- Profile Picture Column -->
+              <div *ngSwitchCase="'profilePicture'" class="flex items-center">
+                <ng-container *ngIf="row.profilePicture; else fallback">
+                  <img [src]="row.profilePicture" alt="{{ row.name }}" 
+                       class="w-10 h-10 rounded-full object-cover">
+                </ng-container>
+                <ng-template #fallback>
+                  <ng-container *ngIf="showFallbackInitial">
+                    <div class="w-10 h-10 bg-slate-500 rounded-full flex items-center justify-center text-lg font-medium">
+                      {{ row.name ? (row.name[0] | uppercase) : '' }}
+                    </div>
+                  </ng-container>
+                </ng-template>
               </div>
-            </ng-template>
-            <!-- Username -->
-            <span class="text-lg font-medium">{{ row.userName }}</span>
-          </div>
-        </td>
-        <!-- Right Cell: Actions -->
-        <td class="px-4 py-2 text-right">
-          <div class="flex items-center justify-end space-x-2">
-            <!-- Primary Action (always visible) -->
-            <button 
-              *ngFor="let act of primaryActions" 
-              (click)="act.action(row)"
-              [ngClass]="act.class"
-              class="flex items-center justify-center px-2 py-2 rounded-full bg-[#050709]">
-              <ng-container *ngIf="(act.display || 'both') !== 'label'">
-                <img *ngIf="act.icon" [src]="act.icon" alt="icon" class="w-6 h-6">
-              </ng-container>
-              <ng-container *ngIf="(act.display || 'both') !== 'icon'">
-                <span>{{ act.label }}</span>
-              </ng-container>
-            </button>
 
-            <!-- Secondary Actions Dropdown -->
+              <!-- Default Column Content -->
+              <div *ngSwitchDefault class="truncate">
+                {{ row[col.field] }}
+              </div>
+            </ng-container>
+          </td>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <td class="px-4 py-2 text-right align-middle">
+          <div class="flex items-center justify-end gap-2">
+            <div class="flex items-center gap-2">
+              <button *ngFor="let act of primaryActions" 
+                      (click)="act.action(row)"
+                      [ngClass]="act.class"
+                      class="p-1.5 rounded-md bg-zinc-600 transition-colors"
+                      [title]="act.label">
+                <img *ngIf="act.icon" [src]="act.icon" alt="icon" class="w-5 h-5">
+                <span *ngIf="!act.icon">{{ act.label }}</span>
+              </button>
+            </div>
+            
             <div class="dropdown-container relative" *ngIf="secondaryActions?.length">
               <app-common-dropdown 
                 [items]="secondaryActions" 
