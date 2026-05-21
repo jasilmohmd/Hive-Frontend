@@ -1,21 +1,31 @@
 import { Injectable } from '@angular/core';
 import { CanActivateChild, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { UserAuthService } from '../services/user-auth.service';
+import { ChatService } from '../services/chat.service';
 import { Router } from '@angular/router';
 import { Observable, of } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { catchError, map, tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthGuardChild implements CanActivateChild {
-  constructor(private authService: UserAuthService, private router: Router) {}
+  constructor(
+    private authService: UserAuthService,
+    private router: Router,
+    private chat: ChatService
+  ) {}
 
   canActivateChild(
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
   ): Observable<boolean> {
     return this.authService.isUserAuthenticated().pipe(
+      tap((response) => {
+        if (response?.token) {
+          this.authService.persistAccessToken(response.token);
+        }
+      }),
       map((response) => {
         // If user is authenticated and trying to access any route under /auth, redirect them
         if (state.url === '' || state.url === '/' || state.url.startsWith('/auth')) {
@@ -24,7 +34,9 @@ export class AuthGuardChild implements CanActivateChild {
           return false;  // Block navigation to any auth routes
         }
 
-        // Allow navigation if the user is authenticated and not trying to access any /auth route
+        if (state.url.startsWith('/main')) {
+          void this.chat.connectRealtime().catch(() => undefined);
+        }
         return true;
       }),
       catchError((error) => {

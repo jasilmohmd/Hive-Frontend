@@ -62,12 +62,16 @@ export interface ISendMessageOptions {
   metadata?: string;
 }
 
+type SocketReadyListener = (socket: Socket) => void;
+
 @Injectable({
   providedIn: 'root',
 })
 export class ChatService {
   private readonly baseUrl = `${environment.apiUrl}/chat`;
   private socket: Socket | null = null;
+  private readonly socketReadyListeners: SocketReadyListener[] = [];
+  private connectPromise: Promise<Socket> | null = null;
 
   readonly incomingMessage$ = new Subject<IChatMessage>();
   readonly messageEdited$ = new Subject<IChatMessage>();
@@ -83,6 +87,7 @@ export class ChatService {
     poll: IPollSummary;
   }>();
   readonly chatError$ = new Subject<string>();
+  readonly socketConnected$ = new Subject<boolean>();
 
   constructor(
     private http: HttpClient,
@@ -164,52 +169,161 @@ export class ChatService {
     return [userIdA, userIdB].sort().join('_');
   }
 
-  ensureSocket(): Socket {
-    const token = this.auth.getAccessToken();
-    if (!token) {
-      throw new Error('Not authenticated (missing token for realtime chat)');
+  isSocketConnected(): boolean {
+    return !!this.socket?.connected;
+  }
+
+  onSocketReady(listener: SocketReadyListener): void {
+    this.socketReadyListeners.push(listener);
+    if (this.socket?.connected) {
+      listener(this.socket);
     }
+  }
+
+  private notifySocketReady(): void {
+    if (!this.socket) return;
+    for (const listener of this.socketReadyListeners) {
+      listener(this.socket);
+    }
+  }
+
+  private resolveSocketUrl(): string {
+    const configured = environment.socketUrl?.trim();
+    if (configured) return configured;
+    if (typeof window !== 'undefined') {
+      return window.location.origin;
+    }
+    return environment.apiUrl;
+  }
+
+  /**
+   * Connect Socket.IO with a fresh JWT from GET /auth/realtime-token.
+   * Call once after login when entering /main.
+   */
+  connectRealtime(): Promise<Socket> {
+    if (this.socket?.connected) {
+      return Promise.resolve(this.socket);
+    }
+    if (this.connectPromise) {
+      return this.connectPromise;
+    }
+    this.connectPromise = this.doConnectRealtime().finally(() => {
+      this.connectPromise = null;
+    });
+    return this.connectPromise;
+  }
+
+  private async doConnectRealtime(): Promise<Socket> {
+    const token = await this.auth.fetchRealtimeToken();
+    if (this.socket) {
+      this.socket.auth = { token };
+      if (!this.socket.connected) {
+        this.socket.connect();
+      }
+      await this.waitUntilConnected(this.socket);
+      return this.socket;
+    }
+
+    const socket = io(this.resolveSocketUrl(), {
+      auth: { token },
+      withCredentials: true,
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: 10,
+    });
+
+    this.attachSocketHandlers(socket);
+    await this.waitUntilConnected(socket);
+    this.socket = socket;
+    return socket;
+  }
+
+  private attachSocketHandlers(socket: Socket): void {
+    socket.on('newMessage', (msg: IChatMessage) => {
+      this.incomingMessage$.next(msg);
+    });
+
+    socket.on('messageEdited', (msg: IChatMessage) => {
+      this.messageEdited$.next(msg);
+    });
+
+    socket.on('messageDeleted', (payload: { _id: string; chatId: string }) => {
+      this.messageDeleted$.next(payload);
+    });
+
+    socket.on(
+      'reactionUpdated',
+      (payload: { chatId: string; messageId: string; reactions: IReactionSummary[] }) => {
+        this.reactionUpdated$.next(payload);
+      }
+    );
+
+    socket.on(
+      'pollUpdated',
+      (payload: { chatId: string; messageId: string; poll: IPollSummary }) => {
+        this.pollUpdated$.next(payload);
+      }
+    );
+
+    socket.on('chatError', (payload: { message?: string }) => {
+      this.chatError$.next(payload?.message ?? 'Chat error');
+    });
+
+    socket.on('connect', () => {
+      this.socketConnected$.next(true);
+      this.notifySocketReady();
+    });
+
+    socket.on('disconnect', () => {
+      this.socketConnected$.next(false);
+    });
+
+    socket.on('connect_error', (err: Error) => {
+      this.socketConnected$.next(false);
+      const msg =
+        err?.message ||
+        'Realtime connection failed — restart client (npm run client) so proxy.conf.json loads';
+      this.chatError$.next(msg);
+    });
+  }
+
+  private waitUntilConnected(socket: Socket): Promise<void> {
+    if (socket.connected) return Promise.resolve();
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        cleanup();
+        reject(new Error('Realtime connection timed out'));
+      }, 15000);
+      const onConnect = () => {
+        cleanup();
+        resolve();
+      };
+      const onError = (err: Error) => {
+        cleanup();
+        reject(err ?? new Error('Realtime connection failed'));
+      };
+      const cleanup = () => {
+        clearTimeout(timeout);
+        socket.off('connect', onConnect);
+        socket.off('connect_error', onError);
+      };
+      socket.on('connect', onConnect);
+      socket.on('connect_error', onError);
+    });
+  }
+
+  ensureSocket(): Socket {
     if (!this.socket) {
-      this.socket = io(environment.apiUrl, {
-        auth: { token },
-        transports: ['websocket', 'polling'],
-      });
-
-      this.socket.on('newMessage', (msg: IChatMessage) => {
-        this.incomingMessage$.next(msg);
-      });
-
-      this.socket.on('messageEdited', (msg: IChatMessage) => {
-        this.messageEdited$.next(msg);
-      });
-
-      this.socket.on('messageDeleted', (payload: { _id: string; chatId: string }) => {
-        this.messageDeleted$.next(payload);
-      });
-
-      this.socket.on(
-        'reactionUpdated',
-        (payload: { chatId: string; messageId: string; reactions: IReactionSummary[] }) => {
-          this.reactionUpdated$.next(payload);
-        }
-      );
-
-      this.socket.on(
-        'pollUpdated',
-        (payload: { chatId: string; messageId: string; poll: IPollSummary }) => {
-          this.pollUpdated$.next(payload);
-        }
-      );
-
-      this.socket.on('chatError', (payload: { message?: string }) => {
-        this.chatError$.next(payload?.message ?? 'Chat error');
-      });
-
-      this.socket.on('connect_error', () => {
-        this.chatError$.next('Realtime connection failed');
-      });
+      throw new Error('Realtime not connected. Open the app from /main first.');
     }
     return this.socket;
+  }
+
+  async ensureSocketConnected(): Promise<Socket> {
+    if (this.socket?.connected) {
+      return this.socket;
+    }
+    return this.connectRealtime();
   }
 
   joinChat(chatId: string): void {
@@ -231,5 +345,6 @@ export class ChatService {
   disconnect(): void {
     this.socket?.disconnect();
     this.socket = null;
+    this.socketConnected$.next(false);
   }
 }
