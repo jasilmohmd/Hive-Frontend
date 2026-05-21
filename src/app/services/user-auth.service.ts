@@ -1,18 +1,34 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
-import { catchError, throwError, Observable } from 'rxjs';
-import { ILoginCredentials, IRegisterationCredentials } from '../models/user';
+import { ILoginCredentials, IRegisterationCredentials, IUser } from '../models/user';
+import { catchError, Observable, tap, throwError } from 'rxjs';
+import { environment } from '../../environments/environment';
+
+const ACCESS_TOKEN_KEY = 'hive_access_token';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserAuthService {
-  private baseUrl = 'http://localhost:3000/auth'; // Base URL for authentication-related endpoints
+  private baseUrl = `${environment.apiUrl}/auth`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    // no-op
+  }
 
-  // Centralized error handler
+  persistAccessToken(token: string): void {
+    sessionStorage.setItem(ACCESS_TOKEN_KEY, token);
+  }
+
+  getAccessToken(): string | null {
+    return sessionStorage.getItem(ACCESS_TOKEN_KEY);
+  }
+
+  clearAccessToken(): void {
+    sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+  }
+
   private handleError(error: HttpErrorResponse) {
     const errorMessage =
       error.error?.message || error.message || 'An unknown error occurred';
@@ -21,24 +37,40 @@ export class UserAuthService {
 
   userRegister(regObj: IRegisterationCredentials): Observable<any> {
     return this.http.post(`${this.baseUrl}/register`, regObj).pipe(
+      tap((res: any) => {
+        if (res?.token) {
+          this.persistAccessToken(res.token);
+        }
+      }),
       catchError(this.handleError)
     );
   }
 
   userLogin(loginObj: ILoginCredentials): Observable<any> {
     return this.http.post(`${this.baseUrl}/login`, loginObj).pipe(
+      tap((res: any) => {
+        if (res?.token) {
+          this.persistAccessToken(res.token);
+        }
+      }),
       catchError(this.handleError)
     );
   }
 
   handelLogout(): Observable<any> {
     return this.http.post(`${this.baseUrl}/logout`, {}).pipe(
+      tap(() => this.clearAccessToken()),
       catchError(this.handleError)
     );
   }
 
   isUserAuthenticated(): Observable<any> {
     return this.http.post(`${this.baseUrl}/isUserAuthenticated`, {}).pipe(
+      tap((res: any) => {
+        if (res?.token) {
+          this.persistAccessToken(res.token);
+        }
+      }),
       catchError(this.handleError)
     );
   }
@@ -59,6 +91,12 @@ export class UserAuthService {
     return this.http.post(`${this.baseUrl}/set_new_password`, {email, newPassword, confirmPassword }).pipe(
       catchError(this.handleError)
     );
+  }
+
+  getUserDetails() {
+    return this.http
+      .get<{ message: string; userData: IUser & { _id?: string } | null }>(`${this.baseUrl}/details`)
+      .pipe(catchError(this.handleError));
   }
 
 }
