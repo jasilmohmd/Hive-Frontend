@@ -8,28 +8,7 @@
   <!-- Modal content -->
   <div class="relative bg-zinc-800 rounded-lg shadow-lg z-50 w-full max-w-lg p-6">
 
-    <!-- Loading overlay -->
-    <div *ngIf="isSubmitting"
-      class="absolute inset-0 bg-zinc-800 bg-opacity-90 flex items-center justify-center rounded-lg z-50">
-      <div class="text-center text-white">
-        <div class="animate-spin mb-4">
-          <svg class="w-8 h-8 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-            </path>
-          </svg>
-        </div>
-        <p *ngIf="uploadProgress === 'uploading'">Uploading images...</p>
-        <p *ngIf="uploadProgress === 'creating'">Creating community...</p>
-        <p *ngIf="uploadProgress === 'success'" class="text-green-500">
-          Community created successfully!
-        </p>
-        <p *ngIf="uploadProgress === 'error'" class="text-red-500">
-          An error occurred. Please try again.
-        </p>
-      </div>
-    </div>
+    <app-loading-state *ngIf="isSubmitting" variant="overlay" [message]="overlayMessage" />
 
     <h2 class="text-2xl font-semibold mb-4 text-white">Create Community</h2>
 
@@ -72,9 +51,14 @@
 
     <!-- Cancel button visible on all steps -->
     <div class="flex justify-end mt-4">
-      <button (click)="onCancel()" [disabled]="isSubmitting"
-        class="absolute top-4 right-4 p-1 focus:outline-none hover:transition-transform duration-200 transform hover:scale-125">
-        <img src="/assets/Icons/Close_round_light.png" class="h-6" alt="">
+      <button
+        type="button"
+        (click)="onCancel()"
+        [disabled]="isSubmitting"
+        aria-label="Close create community dialog"
+        class="absolute top-4 right-4 p-1 rounded hover:transition-transform duration-200 transform hover:scale-125 focus-visible:ring-2 focus-visible:ring-brand"
+      >
+        <img src="/assets/Icons/Close_round_light.png" class="h-6" alt="" />
       </button>
 
     </div>

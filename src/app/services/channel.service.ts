@@ -2,13 +2,14 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, map, Observable, throwError } from 'rxjs';
 import { IChannel } from '../models/channel';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ChannelService {
 
-  private baseUrl = 'http://localhost:3000/channel'; // Base URL for authentication-related endpoints
+  private baseUrl = `${environment.apiUrl}/channel`;
 
   constructor(private http: HttpClient) { }
 

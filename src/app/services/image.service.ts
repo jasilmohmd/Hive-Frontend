@@ -1,13 +1,14 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, map, Observable, throwError } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ImageService {
 
-  private baseUrl = 'http://localhost:3000/image'; // Base URL for authentication-related endpoints
+  private baseUrl = `${environment.apiUrl}/image`;
 
   constructor(private http: HttpClient) { }
 

@@ -31,17 +31,33 @@
 
   <!-- Community Details -->
   <div *ngIf="community" class="w-full mx-auto animate-fade-in ">
-    <!-- Cover Image (16:9 ratio) -->
-    <div #coverAnchor (click)="scrollToCover()" class="relative aspect-[3/1] overflow-hidden shadow-2xl">
-      <div class="absolute inset-0 bg-gradient-to-t from-zinc-900/90 via-zinc-900/30 to-transparent" aria-hidden="true">
-      </div>
-      <img [src]="community.coverImageUrl || 'default-cover.jpg'" alt="Community cover"
-        class="w-full h-full object-cover" />
+    <!-- Cover Image -->
+    <div #coverAnchor class="relative z-0 shadow-2xl">
+      <ng-container *ngIf="canManageCommunity; else coverReadonly">
+        <app-image-picker-menu
+          variant="cover"
+          [src]="community.coverImageUrl || null"
+          [editable]="true"
+          [allowRemove]="false"
+          [alt]="community.name + ' cover image'"
+          (uploaded)="onCommunityCoverUploaded($event)"
+        />
+      </ng-container>
+      <ng-template #coverReadonly>
+        <div class="relative aspect-[3/1] overflow-hidden rounded-xl">
+          <img [src]="community.coverImageUrl || 'default-cover.jpg'" alt="Community cover"
+            class="h-full w-full object-cover" />
+          <div
+            class="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-t from-zinc-900/85 via-zinc-900/15 to-transparent"
+            aria-hidden="true"
+          ></div>
+        </div>
+      </ng-template>
     </div>
 
     <!-- Profile Section -->
     <div #detailsSection
-      class="relative bg-zinc-800 rounded-xl shadow-xl px-4 md:px-6 pt-16 md:pt-20 pb-6 -mt-12 md:-mt-16 mx-2 md:mx-4 mb-4">
+      class="relative z-10 bg-zinc-800 rounded-xl shadow-xl px-4 md:px-6 pt-16 md:pt-20 pb-6 -mt-12 md:-mt-16 mx-2 md:mx-4 mb-4">
 
       <!-- Manage Community Button -->
       <button *ngIf="permissions.includes('MANAGE_COMMUNITY')"
@@ -53,9 +69,25 @@
       </button>
 
       <!-- Community Image -->
-      <div class="absolute -top-8 md:-top-12 left-4 md:left-6">
-        <img [src]="community.imageUrl || 'default-avatar.png'" alt="Community logo"
-          class="w-16 h-16 md:w-24 md:h-24 rounded-full border-4 border-zinc-900 shadow-xl transition-transform duration-300 hover:scale-105" />
+      <div class="absolute -top-8 md:-top-12 left-4 md:left-6 z-[2]">
+        <ng-container *ngIf="canManageCommunity; else logoReadonly">
+          <div class="rounded-full border-4 border-zinc-900 shadow-xl bg-surface-900 p-0">
+            <app-image-picker-menu
+              variant="avatar"
+              [src]="community.imageUrl || null"
+              [editable]="true"
+              [allowRemove]="false"
+              [alt]="community.name + ' logo'"
+              [fallbackLabel]="(community.name || '?').slice(0, 2).toUpperCase()"
+              avatarSizeClass="w-16 h-16 md:w-24 md:h-24"
+              (uploaded)="onCommunityIconUploaded($event)"
+            />
+          </div>
+        </ng-container>
+        <ng-template #logoReadonly>
+          <img [src]="community.imageUrl || 'default-avatar.png'" alt="Community logo"
+            class="w-16 h-16 md:w-24 md:h-24 rounded-full border-4 border-zinc-900 shadow-xl object-cover transition-transform duration-300 hover:scale-105" />
+        </ng-template>
       </div>
 
       <!-- Header Section -->
@@ -80,7 +112,7 @@
               </div>
               <div class="flex justify-between items-center">
                 <span class="text-zinc-400">Owner</span>
-                <span class="text-zinc-200">{{ community.ownerId.userName }}</span>
+                <span class="text-zinc-200">{{ community.ownerId?.userName || 'Unknown' }}</span>
               </div>
               <div class="flex justify-between items-center">
                 <span class="text-zinc-400">Created</span>
@@ -105,8 +137,8 @@
             <div class="flex flex-wrap gap-1.5 md:gap-2">
               <div *ngFor="let member of community.members.slice(0,5)"
                 class="flex items-center gap-2 py-1 bg-zinc-500/30 rounded-full">
-                <div *ngIf="member.userId.status" class="h-3 w-3 bg-green-600/70 rounded-full ml-2 -mr-3"></div>
-                <span class="text-zinc-400 text-sm px-3">{{ member.userId.userName }}</span>
+                <div *ngIf="member.userId?.status" class="h-3 w-3 bg-green-600/70 rounded-full ml-2 -mr-3"></div>
+                <span class="text-zinc-400 text-sm px-3">{{ member.userId?.userName || 'Unknown' }}</span>
               </div>
             </div>
           </div>

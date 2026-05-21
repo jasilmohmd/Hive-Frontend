@@ -33,12 +33,13 @@ export const routes: Routes = [
   {
     path: "auth", component: AuthLayoutComponent,
     canActivateChild: [AuthGuardChild],
+    data: { title: "Account" },
     children: [
-      { path: "login", component: LoginFormComponent },
-      { path: "register", component: RegisterFormComponent },
-      { path: "email_verify", component: EmailVerifyComponent },
-      { path: "otp", component: OtpComponent },
-      { path: "change_pass", component: ChangePasswordComponent }
+      { path: "login", component: LoginFormComponent, data: { title: "Login" } },
+      { path: "register", component: RegisterFormComponent, data: { title: "Register" } },
+      { path: "email_verify", component: EmailVerifyComponent, data: { title: "Email" } },
+      { path: "otp", component: OtpComponent, data: { title: "Verify" } },
+      { path: "change_pass", component: ChangePasswordComponent, data: { title: "Reset password" } }
     ]
   },
 
@@ -46,41 +47,44 @@ export const routes: Routes = [
     path: "main", component: AppLayoutComponent,
     canActivateChild: [AuthGuardChild],
     children: [
-      { path: "discover", component: DiscoverComponent },
-      { path: "profile", component: ProfileComponent },
-      { path: "edit_profile", component: EditProfileComponent },
-      { path: 'change_password', component: ProfileChangePasswordComponent },
+      { path: "discover", component: DiscoverComponent, data: { title: "Discover" } },
+      { path: "profile", component: ProfileComponent, data: { title: "Profile" } },
+      { path: "edit_profile", component: EditProfileComponent, data: { title: "Edit profile" } },
+      { path: 'change_password', component: ProfileChangePasswordComponent, data: { title: "Change password" } },
       {
         path: "friends_section", component: FriendSectionLayoutComponent,
+        data: { title: "Friends" },
         children: [
-          { path: "friends", component: FriendsComponent },
-          { path: "online", component: OnlineComponent },
-          { path: "pending", component: PendingComponent },
-          { path: "blocked", component: BlockedComponent },
-          { path: "addfriend", component: AddfriendComponent }
+          { path: "friends", component: FriendsComponent, data: { title: "Friends" } },
+          { path: "online", component: OnlineComponent, data: { title: "Online" } },
+          { path: "pending", component: PendingComponent, data: { title: "Pending" } },
+          { path: "blocked", component: BlockedComponent, data: { title: "Blocked" } },
+          { path: "addfriend", component: AddfriendComponent, data: { title: "Add friend" } }
         ]
       },
-      { path: "direct_message", component: DirectMessageComponent },
-      { path: "community/:id", component: ComunityLayoutComponent, 
+      { path: "direct_message", component: DirectMessageComponent, data: { title: "Messages" } },
+      { path: "community/:id", component: ComunityLayoutComponent,
+        data: { title: "Community" },
         children: [
           { path: '', redirectTo: 'about', pathMatch: 'full' },
-          { path: "about", component: AboutComponent },
-          { path: "chatroom/:channelId", component: ChatroomComponent },
-          { path: "voiceroom/:channelId", component: VoiceroomComponent },
+          { path: "about", component: AboutComponent, data: { title: "Community" } },
+          { path: "chatroom/:channelId", component: ChatroomComponent, data: { title: "Chat" } },
+          { path: "voiceroom/:channelId", component: VoiceroomComponent, data: { title: "Voice" } },
         ]
       },
       {
         path: 'community/create',
         component: CreateCommunityLayoutComponent,
+        data: { title: "Create community" },
         children: [
           { path: '', redirectTo: 'step-one', pathMatch: 'full' },
-          { path: 'step-one', component: CommunityCreateStepOneComponent },
-          { path: 'step-two', component: CommunityCreateStepTwoComponent },
-          { path: 'step-three', component: CommunityCreateStepThreeComponent },
+          { path: 'step-one', component: CommunityCreateStepOneComponent, data: { title: "Create community" } },
+          { path: 'step-two', component: CommunityCreateStepTwoComponent, data: { title: "Create community" } },
+          { path: 'step-three', component: CommunityCreateStepThreeComponent, data: { title: "Create community" } },
         ]
       }
     ]
   },
-  { path: "",canActivateChild: [AuthGuardChild], component: LandingPageComponent }
+  { path: "",canActivateChild: [AuthGuardChild], component: LandingPageComponent, data: { title: "Hive" } }
 
 ];

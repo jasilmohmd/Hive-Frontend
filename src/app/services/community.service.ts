@@ -3,13 +3,14 @@ import { Injectable } from '@angular/core';
 import { catchError, map, Observable, throwError } from 'rxjs';
 import ICommunity from '../models/community';
 import { ITag } from '../models/tag';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CommunityService {
 
-  private baseUrl = 'http://localhost:3000/community'; // Base URL for authentication-related endpoints
+  private baseUrl = `${environment.apiUrl}/community`;
 
   constructor(private http: HttpClient) { }
 
@@ -31,6 +32,14 @@ export class CommunityService {
     const url = `${this.baseUrl}/user`
     return this.http.get<{ communities: ICommunity[] }>(url).pipe(
       map(response => response.communities),
+      catchError(this.handleError)
+    );
+  }
+
+  listCommunities(): Observable<ICommunity[]> {
+    const url = `${this.baseUrl}/`;
+    return this.http.get<{ communities: ICommunity[] }>(url).pipe(
+      map((response) => response.communities),
       catchError(this.handleError)
     );
   }
@@ -78,5 +87,17 @@ export class CommunityService {
     );
   }
 
+  updateCommunity(
+    communityId: string,
+    data: Partial<ICommunity>
+  ): Observable<ICommunity> {
+    const url = `${this.baseUrl}/update/${communityId}`;
+    return this.http
+      .put<{ updatedCommunity: ICommunity }>(url, { data })
+      .pipe(
+        map((res) => res.updatedCommunity),
+        catchError(this.handleError)
+      );
+  }
 
 }

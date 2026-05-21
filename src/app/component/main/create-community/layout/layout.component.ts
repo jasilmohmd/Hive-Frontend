@@ -7,6 +7,7 @@ import { CommunityCreateStepThreeComponent } from '../step-three/step-three.comp
 import { ImageService } from '../../../../services/image.service';
 import { firstValueFrom } from 'rxjs';
 import { CommunityService } from '../../../../services/community.service';
+import { LoadingStateComponent } from '../../../common/loading-state/loading-state.component';
 
 @Component({
   selector: 'create-community-layout',
@@ -16,7 +17,8 @@ import { CommunityService } from '../../../../services/community.service';
     ReactiveFormsModule,
     CommunityCreateStepOneComponent,
     CommunityCreateStepTwoComponent,
-    CommunityCreateStepThreeComponent
+    CommunityCreateStepThreeComponent,
+    LoadingStateComponent,
   ],
   templateUrl: './layout.component.html',
   styleUrl: './layout.component.css'
@@ -107,6 +109,21 @@ export class CreateCommunityLayoutComponent {
         }
       });
     });
+  }
+
+  get overlayMessage(): string {
+    switch (this.uploadProgress) {
+      case 'uploading':
+        return 'Uploading images...';
+      case 'creating':
+        return 'Creating community...';
+      case 'success':
+        return 'Community created successfully!';
+      case 'error':
+        return 'An error occurred. Please try again.';
+      default:
+        return 'Please wait...';
+    }
   }
 
   goToStep(step: number): void {

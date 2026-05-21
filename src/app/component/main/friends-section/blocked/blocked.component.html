@@ -1,30 +1,45 @@
-
 <!-- Confirmation Modal -->
-<app-common-modal 
+<app-common-modal
   *ngIf="confirmModalVisible"
   title="Confirmation"
   message="Are you sure you want to Unblock this user"
   (confirmed)="handleConfirmation()"
-  (cancelled)="cancelConfirmation()">
+  (cancelled)="cancelConfirmation()"
+>
 </app-common-modal>
 
-
 <!-- Search Bar Section (Make it Sticky) -->
-<div class="sticky top-0 bg-[#1b1b1b] z-10 transition-transform duration-300">
+<div class="sticky top-0 z-10 bg-surface-900 transition-transform duration-300">
   <div class="flex items-center p-2">
-    <input type="text" placeholder="Search Users..." [(ngModel)]="searchTerm" (input)="searchBlockedUsers()"
-      class="flex-1 bg-black text-white placeholder-gray-400 px-4 py-2 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500" />
+    <input
+      type="text"
+      placeholder="Search blocked users..."
+      [(ngModel)]="searchTerm"
+      (input)="searchBlockedUsers()"
+      aria-label="Search blocked users"
+      class="flex-1 rounded-2xl bg-surface-700 px-4 py-2 text-white placeholder-zinc-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+    />
   </div>
 </div>
 
-<!-- Show error if no blocked users found (Only after searching) -->
-<div *ngIf="hasSearched && filteredBlockedUsers.length === 0" class="text-gray-400 mt-4">
-  No blocked users found.
+<div class="flex min-h-0 flex-1 flex-col">
+  <ng-container *ngIf="hasSearched && filteredBlockedUsers.length === 0; else blockedTable">
+    <div class="flex min-h-0 flex-1 items-center justify-center p-6">
+      <app-empty-state
+        [embedded]="true"
+        title="No blocked users found"
+        description="Try a different search term."
+      />
+    </div>
+  </ng-container>
+  <ng-template #blockedTable>
+    <app-common-table
+      [data]="filteredBlockedUsers"
+      [columns]="tableColumns"
+      [primaryActions]="primaryActions"
+      appearance="friends"
+      [showColumnHeaders]="false"
+    >
+    </app-common-table>
+  </ng-template>
 </div>
-
-<!-- Blocked Users List -->
-<app-common-table 
-[data]="filteredBlockedUsers"
-  [columns]="tableColumns"
-  [primaryActions]="primaryActions">
-</app-common-table>

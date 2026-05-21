@@ -1,12 +1,13 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, Observable, throwError } from 'rxjs';
+import { catchError, map, Observable, throwError } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserProfileService {
-  private baseUrl = 'http://localhost:3000/profile'; // Base URL for authentication-related endpoints
+  private baseUrl = `${environment.apiUrl}/profile`;
 
   constructor(private http: HttpClient) { }
 
@@ -35,6 +36,19 @@ export class UserProfileService {
   changePassword(oldPassword: string, newPassword: string): Observable<any> {
     const url = `${this.baseUrl}/change_password`;
     return this.http.put(url, { oldPassword, newPassword }).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /** Persist profile photo URL from ImageService, or clear when null/empty. */
+  updateAvatar(imageUrl: string | null): Observable<void> {
+    const url = `${this.baseUrl}/avatar`;
+    const body =
+      imageUrl === null || imageUrl === ''
+        ? { imageUrl: '' }
+        : { imageUrl };
+    return this.http.put(url, body).pipe(
+      map(() => undefined),
       catchError(this.handleError)
     );
   }

@@ -1,5 +1,6 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { environment } from '../../environments/environment';
 import { catchError, map, Observable, throwError } from 'rxjs';
 import { IRole } from '../models/role';
 
@@ -7,7 +8,7 @@ import { IRole } from '../models/role';
   providedIn: 'root'
 })
 export class RoleService {
-  private baseUrl = 'http://localhost:3000/role'; // Base URL for authentication-related endpoints
+  private baseUrl = `${environment.apiUrl}/role`;
 
   constructor(private http: HttpClient) { }
 

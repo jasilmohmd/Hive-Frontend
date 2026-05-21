@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, ElementRef, Input, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, inject, Input, ViewChild } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -14,11 +14,13 @@ import { ChannelStateService } from '../../../../services/shared/channel-state.s
 import { CommonModalComponent } from '../../../common/common-modal/common-modal.component';
 import { FriendService } from '../../../../services/friends.service';
 import { CommunityService } from '../../../../services/community.service';
+import { ImagePickerMenuComponent } from '../../../common/image-picker-menu/image-picker-menu.component';
+import { ToastService } from '../../../../services/toast.service';
 
 @Component({
   selector: 'app-about',
   standalone: true,
-  imports: [CommonModule, ListModalComponent, CommonModalComponent],
+  imports: [CommonModule, ListModalComponent, CommonModalComponent, ImagePickerMenuComponent],
   templateUrl: './about.component.html',
   styleUrl: './about.component.css'
 })
@@ -56,6 +58,7 @@ export class AboutComponent {
 
 
   private subscriptions: Subscription = new Subscription();
+  private toast = inject(ToastService);
 
   constructor(
     private route: ActivatedRoute,
@@ -104,6 +107,37 @@ export class AboutComponent {
 
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
+  }
+
+  get canManageCommunity(): boolean {
+    return this.permissions.includes('MANAGE_COMMUNITY');
+  }
+
+  onCommunityIconUploaded(url: string): void {
+    this.communityService.updateCommunity(this.communityId, { imageUrl: url }).subscribe({
+      next: () => {
+        this.toast.success('Community icon updated');
+        this.reloadCommunity();
+      },
+      error: (err: Error) => this.toast.error(err.message || 'Update failed'),
+    });
+  }
+
+  onCommunityCoverUploaded(url: string): void {
+    this.communityService.updateCommunity(this.communityId, { coverImageUrl: url }).subscribe({
+      next: () => {
+        this.toast.success('Cover image updated');
+        this.reloadCommunity();
+      },
+      error: (err: Error) => this.toast.error(err.message || 'Update failed'),
+    });
+  }
+
+  private reloadCommunity(): void {
+    this.communityStateService.loadCommunity(this.communityId, true).subscribe((c) => {
+      this.community = c;
+      this.cd.markForCheck();
+    });
   }
 
   ngAfterViewChecked() {

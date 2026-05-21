@@ -1,28 +1,17 @@
-<!-- Skeleton Loading State -->
-<div 
-  *ngIf="isLoading"
-  class="flex rounded-2xl box-border h-full gap-3 animate-pulse"
->
-  <!-- Left Sidebar Skeleton -->
+<app-loading-state *ngIf="isLoading" variant="skeleton" containerClass="flex rounded-2xl box-border h-full gap-3 animate-pulse">
   <div class="relative sm:w-1/6 h-full w-full">
     <div class="h-full w-full rounded-2xl overflow-hidden pb-20 space-y-2">
-      <!-- Channels List Skeleton -->
       <div class="h-full bg-zinc-800 rounded-2xl animate-pulse"></div>
     </div>
-    
-    <!-- Bottom Bar Skeleton -->
     <div class="absolute bottom-0 w-full z-10 rounded-2xl bg-zinc-800 p-3">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <!-- Avatar Skeleton -->
           <div class="h-10 w-10 rounded-full bg-zinc-700"></div>
-          <!-- Text Skeleton -->
           <div class="space-y-1">
             <div class="h-4 w-20 bg-zinc-700 rounded"></div>
             <div class="h-3 w-16 bg-zinc-700 rounded"></div>
           </div>
         </div>
-        <!-- Icons Skeleton -->
         <div class="flex gap-2">
           <div class="h-5 w-5 bg-zinc-700 rounded"></div>
           <div class="h-5 w-5 bg-zinc-700 rounded"></div>
@@ -31,76 +20,51 @@
       </div>
     </div>
   </div>
+  <div class="grow h-full bg-zinc-800 rounded-2xl p-3"></div>
+</app-loading-state>
 
-  <!-- Main Content Skeleton -->
-  <div class="grow h-full bg-zinc-800 rounded-2xl p-3">
-  </div>
-</div>
-
-<!-- Error State -->
-<div 
+<app-error-alert
   *ngIf="errorMessage"
-  class="max-w-2xl mx-auto my-6 p-4 bg-red-50 border border-red-200 rounded-lg"
-  role="alert"
->
-  <div class="flex items-center gap-3 text-red-800">
-    <svg 
-      xmlns="http://www.w3.org/2000/svg" 
-      class="h-6 w-6 flex-none" 
-      fill="none" 
-      viewBox="0 0 24 24" 
-      stroke="currentColor"
-    >
-      <path 
-        stroke-linecap="round" 
-        stroke-linejoin="round" 
-        stroke-width="2" 
-        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" 
-      />
-    </svg>
-    <h3 class="font-semibold flex-1">Something went wrong</h3>
-  </div>
-  <p class="mt-3 pl-9 text-red-700">{{ errorMessage }}</p>
-</div>
-
+  variant="banner"
+  title="Something went wrong"
+  [message]="errorMessage"
+/>
 
 <div *ngIf="community && !isLoading && !errorMessage" class="flex rounded-2xl box-border h-full gap-3">
-
   <div class="relative sm:w-1/6 h-full w-full">
-    <div class="h-full w-full rounded-2xl overflow-scroll hide-scrollbar pb-16">
+    <div class="h-full w-full rounded-2xl overflow-y-auto overflow-x-hidden scrollbar-themed pb-16">
       <app-channels-list [communityId]="communityId"></app-channels-list>
     </div>
     <div class="absolute bottom-0 w-full z-10 rounded-2xl">
-
       <div class="bg-zinc-800 rounded-2xl p-3 h-full flex items-center justify-between gap-2 text-zinc-300">
-
         <div class="flex items-center gap-2">
-
           <div class="relative">
-            <img src="/assets/images/community/Profile/comedyclub.jpg" alt=""
-              class="h-10 w-10 rounded-full object-cover">
-            <div class="absolute bottom-0 right-0 bg-green-700 border-2 border-zinc-800 rounded-full h-3 w-3"></div>
+            <img [src]="currentUserImage" [alt]="currentUserName + ' avatar'" class="h-10 w-10 rounded-full object-cover" />
+            <div class="absolute bottom-0 right-0 bg-green-700 border-2 border-zinc-800 rounded-full h-3 w-3" aria-hidden="true"></div>
           </div>
 
           <div class="flex-col gap-0">
-            <div class="text-lg">Jasil</div>
+            <div class="text-lg">{{ currentUserName }}</div>
             <div class="text-xs font-thin mt-[-5px]">Online</div>
           </div>
         </div>
 
         <div class="flex gap-2">
-          <img src="assets/Icons/mic-fill.png" alt="" class="h-5">
-          <img src="assets/Icons/headphones-fill.png" alt="" class="h-5">
-          <img src="assets/Icons/settings.png" alt="" class="h-5">
+          <button type="button" class="p-1 rounded hover:bg-zinc-700 focus-visible:ring-2 focus-visible:ring-brand" aria-label="Voice activity">
+            <img src="assets/Icons/mic-fill.png" alt="" class="h-5 w-5" />
+          </button>
+          <button type="button" class="p-1 rounded hover:bg-zinc-700 focus-visible:ring-2 focus-visible:ring-brand" aria-label="Voice output">
+            <img src="assets/Icons/headphones-fill.png" alt="" class="h-5 w-5" />
+          </button>
+          <button type="button" class="p-1 rounded hover:bg-zinc-700 focus-visible:ring-2 focus-visible:ring-brand" aria-label="Community settings">
+            <img src="assets/Icons/settings.png" alt="" class="h-5 w-5" />
+          </button>
         </div>
-
       </div>
-
     </div>
   </div>
 
-
-  <div class="grow h-full bg-[#1B1B1B] rounded-2xl overflow-scroll hide-scrollbar p-0">
+  <div class="grow h-full bg-surface-900 rounded-2xl overflow-y-auto overflow-x-hidden scrollbar-themed p-0">
     <router-outlet class="h-full"></router-outlet>
   </div>
 </div>

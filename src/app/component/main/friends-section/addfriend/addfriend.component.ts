@@ -3,13 +3,14 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { FriendService } from '../../../../services/friends.service';
 import { CommonTableComponent } from '../../../common/common-table/common-table.component';
+import { EmptyStateComponent } from '../../../common/empty-state/empty-state.component';
 import { TableAction, TableColumn } from '../../../../interface/table.interface';
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 
 @Component({
   selector: 'app-addfriend',
   standalone: true,
-  imports: [FormsModule, CommonModule, CommonTableComponent],
+  imports: [FormsModule, CommonModule, CommonTableComponent, EmptyStateComponent],
   templateUrl: './addfriend.component.html',
   styleUrls: ['./addfriend.component.css']
 })
