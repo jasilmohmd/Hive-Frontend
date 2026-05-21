@@ -64,6 +64,31 @@
 
       </div>
 
+      <div class="flex shrink-0 items-center gap-2">
+        <button
+          type="button"
+          (click)="startVoiceCall()"
+          class="rounded-full bg-surface-600 p-2.5 text-zinc-200 hover:bg-zinc-600 focus-visible:ring-2 focus-visible:ring-brand"
+          aria-label="Start voice call"
+          title="Voice call"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M20 15.5c-1.25 0-2.45-.2-3.57-.57a1.02 1.02 0 0 0-1.02.24l-2.2 2.2a15.045 15.045 0 0 1-6.59-6.59l2.2-2.21a1 1 0 0 0 .24-1.02A11.36 11.36 0 0 0 8.5 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.5c0-.55-.45-1-1-1z"/>
+          </svg>
+        </button>
+        <button
+          type="button"
+          (click)="startVideoCall()"
+          class="rounded-full bg-surface-600 p-2.5 text-zinc-200 hover:bg-zinc-600 focus-visible:ring-2 focus-visible:ring-brand"
+          aria-label="Start video call"
+          title="Video call"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
+          </svg>
+        </button>
+      </div>
+
     </ng-container>
 
     <ng-container *ngIf="!friendId">
@@ -118,9 +143,17 @@
 
     <div class="scrollbar-themed min-h-0 flex-1 space-y-2 overflow-y-auto p-4">
 
+      <ng-container *ngFor="let msg of messages; trackBy: trackByMsg">
+
+      <div *ngIf="isCallMessage(msg)" class="flex w-full justify-center py-1">
+
+        <app-chat-message-call [msg]="msg" [viewerId]="currentUserId" />
+
+      </div>
+
       <div
 
-        *ngFor="let msg of messages; trackBy: trackByMsg"
+        *ngIf="isRegularMessage(msg)"
 
         class="flex w-full py-1"
 
@@ -285,6 +318,8 @@
         </div>
 
       </div>
+
+      </ng-container>
 
 
 
@@ -515,6 +550,10 @@
     </div>
 
   </div>
+
+  <app-dm-call-overlay
+    [peerName]="friendDisplayName || 'Friend'"
+  ></app-dm-call-overlay>
 
 </div>
 

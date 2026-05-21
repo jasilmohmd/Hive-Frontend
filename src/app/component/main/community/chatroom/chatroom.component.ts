@@ -290,7 +290,6 @@ export class ChatroomComponent implements OnInit, OnDestroy {
     this.historySub?.unsubscribe();
     this.avatarPrefetchSub?.unsubscribe();
     this.subs.unsubscribe();
-    this.chat.disconnect();
   }
 
   private loadHistory(chatKey: string): void {
@@ -308,11 +307,12 @@ export class ChatroomComponent implements OnInit, OnDestroy {
         this.messages = rows;
         this.seedAndPrefetchAvatars(rows);
         this.loading = false;
-        try {
-          this.chat.joinChat(chatKey);
-        } catch (e) {
-          this.errorMessage = (e as Error).message;
-        }
+        void this.chat
+          .connectRealtime()
+          .then(() => this.chat.joinChat(chatKey))
+          .catch((e: Error) => {
+            this.errorMessage = e.message;
+          });
       },
       error: (e: Error) => {
         this.loading = false;

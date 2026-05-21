@@ -1,5 +1,7 @@
 <div class="bg-black m-0 min-h-screen overflow-y-auto flex flex-col md:flex-row">
 
+  <app-incoming-call-modal></app-incoming-call-modal>
+
   <create-community-layout *ngIf="showCommunityCreateModal" (close)="toggleCommunityCreateModal()"></create-community-layout>
 
   <!-- Mobile bottom nav -->

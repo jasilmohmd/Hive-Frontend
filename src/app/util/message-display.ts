@@ -64,6 +64,96 @@ export function isPollMessage(msg: IChatMessage): boolean {
   return msg.type === 'poll';
 }
 
+export type CallOutcome = 'completed' | 'missed' | 'declined' | 'cancelled' | 'unavailable';
+
+export interface ICallMessageContent {
+  callType: 'audio' | 'video';
+  outcome: CallOutcome;
+  durationSeconds: number;
+  callerId: string;
+  endedBy?: string;
+}
+
+export function isCallMessage(msg: IChatMessage): boolean {
+  return msg.type === 'call';
+}
+
+export function parseCallMessageContent(raw: string): ICallMessageContent | null {
+  try {
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    const callType = parsed['callType'];
+    const outcome = parsed['outcome'];
+    if (callType !== 'audio' && callType !== 'video') return null;
+    if (
+      outcome !== 'completed' &&
+      outcome !== 'missed' &&
+      outcome !== 'declined' &&
+      outcome !== 'cancelled' &&
+      outcome !== 'unavailable'
+    ) {
+      return null;
+    }
+    const durationSeconds =
+      typeof parsed['durationSeconds'] === 'number' ? Math.max(0, Math.floor(parsed['durationSeconds'])) : 0;
+    if (typeof parsed['callerId'] !== 'string') return null;
+    return {
+      callType,
+      outcome,
+      durationSeconds,
+      callerId: parsed['callerId'],
+      endedBy: typeof parsed['endedBy'] === 'string' ? parsed['endedBy'] : undefined,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function formatCallDuration(seconds: number): string {
+  if (seconds <= 0) return '0s';
+  if (seconds < 60) return `${seconds}s`;
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  if (m < 60) return s > 0 ? `${m}m ${s}s` : `${m}m`;
+  const h = Math.floor(m / 60);
+  const rm = m % 60;
+  return rm > 0 ? `${h}h ${rm}m` : `${h}h`;
+}
+
+export function callMessageLabel(msg: IChatMessage, viewerId: string | null): string {
+  const data = parseCallMessageContent(msg.content);
+  if (!data || !viewerId) return 'Call';
+  const kind = data.callType === 'video' ? 'Video' : 'Voice';
+  const outgoing = data.callerId === viewerId;
+
+  switch (data.outcome) {
+    case 'completed': {
+      const dur = formatCallDuration(data.durationSeconds);
+      return outgoing ? `${kind} call · ${dur}` : `Incoming ${kind.toLowerCase()} call · ${dur}`;
+    }
+    case 'missed':
+      return outgoing ? `No answer` : `Missed ${kind.toLowerCase()} call`;
+    case 'declined':
+      return outgoing ? `Call declined` : `Declined ${kind.toLowerCase()} call`;
+    case 'cancelled':
+      return outgoing ? `Cancelled call` : `Missed ${kind.toLowerCase()} call`;
+    case 'unavailable':
+      return outgoing
+        ? `User offline — unable to connect`
+        : `Missed ${kind.toLowerCase()} call`;
+    default:
+      return `${kind} call`;
+  }
+}
+
+export function isMissedCallMessage(msg: IChatMessage, viewerId: string | null): boolean {
+  const data = parseCallMessageContent(msg.content);
+  if (!data || !viewerId) return false;
+  const outgoing = data.callerId === viewerId;
+  if (data.outcome === 'missed' || data.outcome === 'unavailable') return !outgoing;
+  if (data.outcome === 'cancelled' && data.callerId !== viewerId) return true;
+  return false;
+}
+
 export function parseFileContent(raw: string): IFileMessageContent | null {
   try {
     const parsed = JSON.parse(raw) as Record<string, unknown>;

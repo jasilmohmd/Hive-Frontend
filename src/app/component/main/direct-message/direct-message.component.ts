@@ -6,6 +6,8 @@ import { catchError } from 'rxjs/operators';
 import { ChatService, IChatMessage } from '../../../services/chat.service';
 import { UserAuthService } from '../../../services/user-auth.service';
 import { FriendService, IUser } from '../../../services/friends.service';
+import { CallService, CallType } from '../../../services/call.service';
+import { DmCallOverlayComponent } from '../../common/dm-call-overlay/dm-call-overlay.component';
 import {
   ChatComposerComponent,
   ChatComposerPayload,
@@ -32,6 +34,7 @@ import { ChatVoiceRecorderComponent } from '../../common/chat-voice-recorder/cha
 import { ChatPollComposerComponent } from '../../common/chat-poll-composer/chat-poll-composer.component';
 import { ChatContactPickerComponent } from '../../common/chat-contact-picker/chat-contact-picker.component';
 import { ChatForwardPickerComponent } from '../../common/chat-forward-picker/chat-forward-picker.component';
+import { ChatMessageCallComponent } from '../../common/chat-message-call/chat-message-call.component';
 import { chatSenderMessageBubbleStyle } from '../../../util/chat-sender-color';
 import { ChatUploadKind, validateFileForUpload } from '../../../util/chat-attachment';
 import {
@@ -56,6 +59,7 @@ import {
   isAudioMessage,
   isContactMessage,
   isPollMessage,
+  isCallMessage,
   parseContactContent,
   parseMetadata,
   hasForwardedLabel,
@@ -96,6 +100,8 @@ import {
     ChatPollComposerComponent,
     ChatContactPickerComponent,
     ChatForwardPickerComponent,
+    ChatMessageCallComponent,
+    DmCallOverlayComponent,
   ],
   templateUrl: './direct-message.component.html',
   styleUrl: './direct-message.component.css',
@@ -139,6 +145,7 @@ export class DirectMessageComponent implements OnInit, OnDestroy {
   readonly isAudioMessage = isAudioMessage;
   readonly isContactMessage = isContactMessage;
   readonly isPollMessage = isPollMessage;
+  readonly isCallMessage = isCallMessage;
   readonly parseContactContent = parseContactContent;
   readonly hasForwardedLabel = hasForwardedLabel;
 
@@ -149,10 +156,17 @@ export class DirectMessageComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private chat: ChatService,
     private auth: UserAuthService,
-    private friends: FriendService
+    private friends: FriendService,
+    private call: CallService
   ) {}
 
   ngOnInit(): void {
+    this.subs.add(
+      this.call.callError$.subscribe((msg) => {
+        this.errorMessage = msg;
+      })
+    );
+
     this.subs.add(
       this.auth.getUserDetails().subscribe({
         next: (res) => {
@@ -249,7 +263,30 @@ export class DirectMessageComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.historySub?.unsubscribe();
     this.subs.unsubscribe();
-    this.chat.disconnect();
+    if (this.call.isInCall()) {
+      this.call.endCall();
+    }
+  }
+
+  async startVoiceCall(): Promise<void> {
+    await this.startCall('audio');
+  }
+
+  async startVideoCall(): Promise<void> {
+    await this.startCall('video');
+  }
+
+  private async startCall(callType: CallType): Promise<void> {
+    if (!this.chatId || !this.friendId) return;
+    this.errorMessage = null;
+    this.voicePanelOpen = false;
+    this.attachMenuOpen = false;
+    try {
+      await this.chat.connectRealtime();
+      await this.call.startCall(this.chatId, this.friendId, callType);
+    } catch (e) {
+      this.errorMessage = (e as Error).message;
+    }
   }
 
   tryOpenChat(): void {
@@ -281,11 +318,12 @@ export class DirectMessageComponent implements OnInit, OnDestroy {
       next: (rows) => {
         this.messages = rows;
         this.loading = false;
-        try {
-          this.chat.joinChat(chatKey);
-        } catch (e) {
-          this.errorMessage = (e as Error).message;
-        }
+        void this.chat
+          .connectRealtime()
+          .then(() => this.chat.joinChat(chatKey))
+          .catch((e: Error) => {
+            this.errorMessage = e.message;
+          });
       },
       error: (e: Error) => {
         this.loading = false;
@@ -351,6 +389,10 @@ export class DirectMessageComponent implements OnInit, OnDestroy {
 
   onAttachVoiceRequested(): void {
     this.attachMenuOpen = false;
+    if (this.call.isInCall()) {
+      this.uploadError = 'End the call before sending a voice message.';
+      return;
+    }
     this.voicePanelOpen = true;
   }
 
@@ -367,9 +409,17 @@ export class DirectMessageComponent implements OnInit, OnDestroy {
   async onVoiceRecorded(file: File): Promise<void> {
     this.voicePanelOpen = false;
     if (!this.chatId) return;
+    if (file.size < 200) {
+      this.uploadError = 'Recording was too short. Try again.';
+      return;
+    }
     try {
       this.isUploading = true;
-      await firstValueFrom(this.chat.sendAudioMessage(this.chatId, file));
+      this.uploadError = null;
+      const msg = await firstValueFrom(this.chat.sendAudioMessage(this.chatId, file));
+      if (msg.chatId === this.chatId && !this.messages.some((m) => m._id === msg._id)) {
+        this.messages = [...this.messages, msg];
+      }
       this.composerReset++;
     } catch (e) {
       this.uploadError = (e as Error).message;
@@ -523,6 +573,10 @@ export class DirectMessageComponent implements OnInit, OnDestroy {
 
   canEditMessage(msg: IChatMessage): boolean {
     return msg.type === 'text' || msg.type === 'poll';
+  }
+
+  isRegularMessage(msg: IChatMessage): boolean {
+    return !isCallMessage(msg);
   }
 
   metadataFor(msg: IChatMessage) {
