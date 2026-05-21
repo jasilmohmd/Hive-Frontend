@@ -6,11 +6,12 @@ import { FormsModule } from '@angular/forms';
 import { TableAction, TableColumn } from '../../../../interface/table.interface';
 import { CommonTableComponent } from '../../../common/common-table/common-table.component';
 import { CommonModalComponent } from '../../../common/common-modal/common-modal.component';
+import { EmptyStateComponent } from '../../../common/empty-state/empty-state.component';
 
 @Component({
   selector: 'app-blocked',
   standalone: true,
-  imports: [CommonModule, FormsModule, CommonTableComponent, CommonModalComponent],
+  imports: [CommonModule, FormsModule, CommonTableComponent, CommonModalComponent, EmptyStateComponent],
   templateUrl: './blocked.component.html',
   styleUrl: './blocked.component.css'
 })

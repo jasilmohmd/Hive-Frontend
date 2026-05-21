@@ -1,11 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { catchError, map, Observable, throwError } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface IUser {
   _id: string;
   userName: string;
   email: string;
+  imageUrl?: string;
 }
 
 @Injectable({
@@ -13,7 +15,7 @@ export interface IUser {
 })
 export class FriendService {
 
-  private baseUrl = 'http://localhost:3000/friends'; // Base URL for authentication-related endpoints
+  private baseUrl = `${environment.apiUrl}/friends`;
 
   constructor(private http: HttpClient) { }
 
@@ -38,9 +40,10 @@ export class FriendService {
     );
   }
 
-  getUserDetails(friendId: string): Observable<IUser>{
-    const url = `http://localhost:3000/auth/userDetails/${friendId}`
-    return this.http.get<IUser>(url).pipe(
+  getUserDetails(friendId: string): Observable<IUser> {
+    const url = `${environment.apiUrl}/auth/userDetails/${friendId}`;
+    return this.http.get<{ userData: IUser | null }>(url).pipe(
+      map((response) => response.userData as IUser),
       catchError(this.handleError)
     );
   }

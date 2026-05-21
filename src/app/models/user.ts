@@ -11,7 +11,8 @@ export interface ILoginCredentials {
 }
 
 export interface IUser {
-  // _id: string;
+  _id?: string;
+  imageUrl?: string | undefined;
   userName: string;
   email: string | undefined;
   // password: string | undefined;

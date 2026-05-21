@@ -1,15 +1,17 @@
 import { ChangeDetectorRef, Component, HostListener } from '@angular/core';
+import { Router } from '@angular/router';
 import { FriendService } from '../../../../services/friends.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TableAction, TableColumn } from '../../../../interface/table.interface';
 import { CommonTableComponent } from '../../../common/common-table/common-table.component';
 import { CommonModalComponent } from '../../../common/common-modal/common-modal.component';
+import { EmptyStateComponent } from '../../../common/empty-state/empty-state.component';
 
 @Component({
   selector: 'app-online',
   standalone: true,
-  imports: [CommonModule, FormsModule, CommonTableComponent,CommonModalComponent],
+  imports: [CommonModule, FormsModule, CommonTableComponent, CommonModalComponent, EmptyStateComponent],
   templateUrl: './online.component.html',
   styleUrl: './online.component.css'
 })
@@ -30,16 +32,7 @@ export class OnlineComponent {
     { header: 'Username', field: 'userName' }
   ];
 
-  // Define primary action: Message button (always visible)
-  primaryActions: TableAction[] = [
-    {
-      label: 'Message',
-      action: (row: any) => this.message(row),
-      class: 'hover:bg-slate-800 px-4 py-2 text-sm rounded-full',
-      icon: "assets/Icons/message-circle.png",
-      display: "icon"
-    }
-  ];
+  primaryActions: TableAction[] = [];
 
   // Define secondary actions: Unfriend and Block User in dropdown
   secondaryActions: TableAction[] = [
@@ -60,7 +53,11 @@ export class OnlineComponent {
   confirmModalVisible: boolean = false;
   pendingAction: { type: 'unfriend' | 'block', friendId: string } | null = null;
 
-  constructor(private friendsService: FriendService, private cdr: ChangeDetectorRef) { }
+  constructor(
+    private friendsService: FriendService,
+    private cdr: ChangeDetectorRef,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.loadOnlineFriends();  // Fetch online friends on component load
@@ -151,7 +148,9 @@ export class OnlineComponent {
   unfriend(friendId: string): void {
     this.friendsService.unfriendUser(friendId).subscribe({
       next: () => {
-        this.filteredOnlineFriends = this.filteredOnlineFriends.filter(friend => friend.id !== friendId);
+        this.filteredOnlineFriends = this.filteredOnlineFriends.filter(
+          (friend) => (friend._id ?? friend.id) !== friendId
+        );
       },
       error: (error) => {
         console.error('Error unfriending user:', error);
@@ -164,7 +163,9 @@ export class OnlineComponent {
 
     this.friendsService.blockUser(friendId).subscribe({
       next: () => {
-        this.filteredOnlineFriends = this.filteredOnlineFriends.filter(friend => friend.id !== friendId);
+        this.filteredOnlineFriends = this.filteredOnlineFriends.filter(
+          (friend) => (friend._id ?? friend.id) !== friendId
+        );
       },
       error: (error) => {
         console.error('Error blocking user:', error);
@@ -175,8 +176,9 @@ export class OnlineComponent {
 
 
   message(row: any): void {
-    // Implement your messaging logic here
-    console.log('Message action for:', row);
+    const friendId = row._id ?? row.id;
+    if (!friendId) return;
+    this.router.navigate(['/main/direct_message'], { queryParams: { friendId } });
   }
 
 

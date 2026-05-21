@@ -1,0 +1,59 @@
+<!-- General Section -->
+<div class="rounded-xl bg-zinc-900 w-full mb-3 p-2">
+  <div class="text-zinc-400 font-medium px-3 py-2">General</div>
+  <div class="flex-col items-center text-zinc-300 cursor-pointer">
+    <a [routerLink]="['/main','community', communityId, 'about']" class="flex items-center gap-1 hover:bg-zinc-800 rounded-lg w-full px-3 py-1">
+      <img src="/assets/Icons/hash.png" alt="" class="h-5">
+      <span>About</span>
+    </a>
+    <div *ngFor="let item of channels.info" class="flex items-center gap-1 hover:bg-zinc-800 rounded-lg w-full px-3 py-1">
+      <img src="/assets/Icons/hash.png" alt="" class="h-5">
+      <span>{{ item.name }}</span>
+    </div>
+  </div>
+</div>
+
+<!-- Chat Rooms Section -->
+<div *ngIf="channels.chatroom?.length" class="rounded-xl bg-zinc-900 w-full mb-3 p-2">
+  <div class="text-zinc-400 font-medium px-3 py-2">Chat Rooms</div>
+  <div *ngFor="let room of channels.chatroom" class="flex items-center text-zinc-300 cursor-pointer">
+    <a [routerLink]="['/main','community', communityId, 'chatroom', room._id ]" class="flex items-center gap-1 hover:bg-zinc-800 rounded-lg w-full px-3 py-1">
+      <img src="/assets/Icons/chat_fill.png" alt="" class="h-5">
+      <span>{{ room.name }}</span>
+    </a>
+  </div>
+</div>
+
+<!-- Voice Rooms Section -->
+<div *ngIf="channels.voiceroom?.length" class="rounded-xl bg-zinc-900 w-full mb-3 flex-grow p-2">
+  <div class="text-zinc-400 font-medium px-3 py-2">Voice Rooms</div>
+  <div *ngFor="let room of channels.voiceroom" class="cursor-pointer">
+    <a [routerLink]="['/main','community', communityId, 'voiceroom', room._id ]" class="flex items-center justify-between rounded-lg hover:bg-zinc-800 w-full px-3 py-2">
+      <div class="flex items-center gap-1 text-zinc-300">
+        <img src="/assets/Icons/sound_max_fill.png" alt="" class="h-5">
+        <span>{{ room.name }}</span>
+      </div>
+      <div class="flex justify-center items-center gap-1">
+        <span class="text-xs text-zinc-500">{{ room.maxParticipants }}</span>
+        <img 
+          src="/assets/Icons/small-down-arrow.png" 
+          alt=""
+          class="h-5 mt-1 transition-transform duration-200 transform hover:scale-150"
+          (click)="toggleRoom(room)">
+      </div>
+
+    </a>
+
+    <!-- Participants -->
+    <div *ngIf="room.isOpen" class="ml-5">
+      <div *ngFor="let participant of room.participantDetails"
+        class="flex items-center gap-2 px-3 py-2 hover:bg-zinc-800 w-full rounded-lg">
+        <div class="w-5 h-5 rounded-full bg-gray-500 overflow-hidden ">
+          <img [src]="participant.imageUrl" [alt]="participant.userName" class="w-full h-full object-cover">
+        </div>
+        <span class="text-sm text-zinc-400">{{ participant.userName }}</span>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -3,12 +3,13 @@ import { FriendService } from '../../../../services/friends.service';
 import { CommonModule } from '@angular/common';
 import { TableAction, TableColumn } from '../../../../interface/table.interface';
 import { CommonTableComponent } from '../../../common/common-table/common-table.component';
+import { EmptyStateComponent } from '../../../common/empty-state/empty-state.component';
 import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-pending',
   standalone: true,
-  imports: [CommonModule, CommonTableComponent, FormsModule],
+  imports: [CommonModule, CommonTableComponent, FormsModule, EmptyStateComponent],
   templateUrl: './pending.component.html',
   styleUrl: './pending.component.css'
 })
@@ -53,7 +54,7 @@ export class PendingComponent implements OnInit {
       next: (response: any[]) => {
         // Transform the pending request data so that each row has profilePicture, userName, _id
         this.pendingRequests = response.map(req => ({
-          profilePicture: req.sender.profilePicture, // may be undefined if not provided
+          profilePicture: req.sender.imageUrl ?? req.sender.profilePicture,
           userName: req.sender.userName,
           _id: req.sender._id,
           sender: req.sender  // preserve original if needed
