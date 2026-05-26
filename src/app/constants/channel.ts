@@ -43,8 +43,11 @@ const channelCreateFields = [
     field: 'maxParticipants',
     label: 'Max Participants',
     type: 'number',
-    validators: [Validators.max(20)],
-    errorMessages: { max: 'Max participants cannot exceed 20' },
+    validators: [Validators.min(2), Validators.max(6)],
+    errorMessages: {
+      min: 'At least 2 participants required',
+      max: 'Voice rooms support at most 6 participants',
+    },
     // Only show this field if type === 'voiceroom'
     showIf: (values: any) => values.type === 'voiceroom'
   }

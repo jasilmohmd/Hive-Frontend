@@ -1,7 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, Output } from '@angular/core';
 import { ChannelsListComponent } from '../channels-list/channels-list.component';
+import { VoiceSessionBarComponent } from '../voice-session-bar/voice-session-bar.component';
 import { ActivatedRoute, RouterOutlet } from '@angular/router';
+import { VoiceroomService } from '../../../../services/voiceroom.service';
 import { LoadingStateComponent } from '../../../common/loading-state/loading-state.component';
 import { ErrorAlertComponent } from '../../../common/error-alert/error-alert.component';
 import { Subscription } from 'rxjs';
@@ -14,7 +16,14 @@ import { UserAuthService } from '../../../../services/user-auth.service';
 @Component({
   selector: 'community-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, ChannelsListComponent, LoadingStateComponent, ErrorAlertComponent],
+  imports: [
+    CommonModule,
+    RouterOutlet,
+    ChannelsListComponent,
+    VoiceSessionBarComponent,
+    LoadingStateComponent,
+    ErrorAlertComponent,
+  ],
   templateUrl: './layout.component.html',
   styleUrl: './layout.component.css'
 })
@@ -27,6 +36,7 @@ export class ComunityLayoutComponent implements OnInit, OnDestroy {
   permissions: string[] = [];
   currentUserName: string = 'User';
   currentUserImage: string = '/assets/images/community/Profile/comedyclub.jpg';
+  voiceSessionActive = false;
 
   private subscriptions: Subscription = new Subscription();
 
@@ -34,7 +44,8 @@ export class ComunityLayoutComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private communityStateService: CommunityStateService,
     private roleStateService: RoleStateService,
-    private authService: UserAuthService
+    private authService: UserAuthService,
+    private voiceroom: VoiceroomService
   ) { }
 
   ngOnInit(): void {
@@ -77,9 +88,16 @@ export class ComunityLayoutComponent implements OnInit, OnDestroy {
       }
     });
     this.subscriptions.add(userSub);
+
+    this.subscriptions.add(
+      this.voiceroom.connected$.subscribe((c) => {
+        this.voiceSessionActive = c;
+      })
+    );
   }
 
   ngOnDestroy(): void {
+    void this.voiceroom.leaveActiveCall();
     this.subscriptions.unsubscribe();
   }
 

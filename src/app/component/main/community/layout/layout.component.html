@@ -30,12 +30,17 @@
   [message]="errorMessage"
 />
 
-<div *ngIf="community && !isLoading && !errorMessage" class="flex rounded-2xl box-border h-full gap-3">
-  <div class="relative sm:w-1/6 h-full w-full">
-    <div class="h-full w-full rounded-2xl overflow-y-auto overflow-x-hidden scrollbar-themed pb-16">
+<div *ngIf="community && !isLoading && !errorMessage" class="flex h-full min-h-0 w-full gap-3 rounded-2xl box-border">
+  <div class="relative h-full w-full shrink-0 sm:w-1/6">
+    <div
+      class="h-full w-full rounded-2xl overflow-y-auto overflow-x-hidden scrollbar-themed"
+      [class.pb-16]="!voiceSessionActive"
+      [class.pb-32]="voiceSessionActive"
+    >
       <app-channels-list [communityId]="communityId"></app-channels-list>
     </div>
-    <div class="absolute bottom-0 w-full z-10 rounded-2xl">
+    <div class="absolute bottom-0 w-full z-10 flex flex-col gap-1.5 rounded-2xl">
+      <app-voice-session-bar [communityId]="communityId"></app-voice-session-bar>
       <div class="bg-zinc-800 rounded-2xl p-3 h-full flex items-center justify-between gap-2 text-zinc-300">
         <div class="flex items-center gap-2">
           <div class="relative">
@@ -64,7 +69,7 @@
     </div>
   </div>
 
-  <div class="grow h-full bg-surface-900 rounded-2xl overflow-y-auto overflow-x-hidden scrollbar-themed p-0">
-    <router-outlet class="h-full"></router-outlet>
+  <div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl bg-surface-900">
+    <router-outlet></router-outlet>
   </div>
 </div>

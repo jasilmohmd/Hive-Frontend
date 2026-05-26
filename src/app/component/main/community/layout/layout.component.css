@@ -14,3 +14,11 @@
 .animate-shimmer {
   animation: shimmer 1s infinite;
 }
+
+/* Routed views are inserted as siblings of router-outlet, not inside it. */
+router-outlet {
+  flex: 0 0 0;
+  height: 0;
+  min-height: 0;
+  overflow: hidden;
+}
