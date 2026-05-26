@@ -1,8 +1,11 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Subject } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject, Subject, firstValueFrom } from 'rxjs';
 import { Socket } from 'socket.io-client';
+import { environment } from '../../environments/environment';
 import { ChatService } from './chat.service';
 import { CallRingtoneService } from './call-ringtone.service';
+import { P2pTransport } from './call/p2p-transport';
 
 export type CallType = 'audio' | 'video';
 export type CallState =
@@ -21,7 +24,7 @@ export interface IIncomingCall {
   callerId: string;
 }
 
-const ICE_SERVERS: RTCConfiguration = {
+const DEFAULT_ICE: RTCConfiguration = {
   iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
 };
 
@@ -29,37 +32,40 @@ const ICE_SERVERS: RTCConfiguration = {
   providedIn: 'root',
 })
 export class CallService {
-  private pc: RTCPeerConnection | null = null;
-  private localStream: MediaStream | null = null;
+  private readonly transport = new P2pTransport();
+  private iceConfig: RTCConfiguration | null = null;
   private callId: string | null = null;
   private chatId: string | null = null;
   private peerId: string | null = null;
   private role: 'caller' | 'callee' | null = null;
   private callType: CallType = 'audio';
   private socketListenersBound = false;
-  private pendingIceCandidates: RTCIceCandidateInit[] = [];
-  private remoteDescriptionSet = false;
   private unavailableDismissTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly incomingCall$ = new Subject<IIncomingCall>();
   readonly callAccepted$ = new Subject<{ callId: string; chatId: string }>();
   readonly callEnded$ = new Subject<{ callId: string; chatId: string; endedBy?: string }>();
   readonly callRejected$ = new Subject<{ callId: string; chatId: string }>();
-  readonly remoteStream$ = new Subject<MediaStream | null>();
+  readonly remoteStream$ = this.transport.remoteStream$;
   readonly callError$ = new Subject<string>();
   readonly callState$ = new BehaviorSubject<CallState>('idle');
-
   readonly callType$ = new BehaviorSubject<CallType>('audio');
 
   constructor(
     private chat: ChatService,
-    private ringtone: CallRingtoneService
+    private ringtone: CallRingtoneService,
+    private http: HttpClient
   ) {
     this.chat.onSocketReady((socket) => this.bindSocketEventsIfNeeded(socket));
     this.callState$.subscribe((state) => {
       if (state === 'outgoing') this.ringtone.playOutgoing();
       else if (state === 'incoming') this.ringtone.playIncoming();
       else if (state !== 'unavailable') this.ringtone.stop();
+    });
+    this.transport.remoteStream$.subscribe((stream) => {
+      if (stream && this.callState$.value === 'connecting') {
+        this.callState$.next('active');
+      }
     });
   }
 
@@ -87,7 +93,7 @@ export class CallService {
   }
 
   get localMediaStream(): MediaStream | null {
-    return this.localStream;
+    return this.transport.localStream;
   }
 
   isInCall(): boolean {
@@ -95,9 +101,8 @@ export class CallService {
     return s === 'outgoing' || s === 'incoming' || s === 'connecting' || s === 'active';
   }
 
-  /** Release local capture tracks (voice notes after a call). */
   releaseMediaDevices(): void {
-    this.stopLocalStream();
+    this.transport.releaseLocalMedia();
   }
 
   async startCall(chatId: string, peerId: string, callType: CallType): Promise<void> {
@@ -116,7 +121,7 @@ export class CallService {
       this.callType$.next(callType);
       this.callState$.next('outgoing');
 
-      await this.initLocalMedia(callType);
+      await this.transport.acquireLocalMedia(callType);
       const socket = await this.chat.connectRealtime();
       socket.emit('call:invite', {
         callId: this.callId,
@@ -144,7 +149,7 @@ export class CallService {
     this.callState$.next('connecting');
 
     try {
-      await this.initLocalMedia(call.callType);
+      await this.transport.acquireLocalMedia(call.callType);
       const socket = await this.chat.connectRealtime();
       socket.emit('call:accept', {
         callId: call.callId,
@@ -161,8 +166,7 @@ export class CallService {
       this.callState$.next('idle');
       return;
     }
-    const socket = this.chat.ensureSocket();
-    socket.emit('call:reject', {
+    this.chat.ensureSocket().emit('call:reject', {
       callId: this.callId,
       chatId: this.chatId,
     });
@@ -179,23 +183,16 @@ export class CallService {
     this.endCallLocal();
   }
 
-  /** Media/setup failed — end call for both sides without implying the user declined. */
   private abortCallSetup(): void {
     this.endCall();
   }
 
   toggleMute(): boolean {
-    const track = this.localStream?.getAudioTracks()[0];
-    if (!track) return false;
-    track.enabled = !track.enabled;
-    return track.enabled;
+    return this.transport.toggleMic();
   }
 
   toggleCamera(): boolean {
-    const track = this.localStream?.getVideoTracks()[0];
-    if (!track) return false;
-    track.enabled = !track.enabled;
-    return track.enabled;
+    return this.transport.toggleCam();
   }
 
   private getPendingIncoming(): IIncomingCall | null {
@@ -262,7 +259,7 @@ export class CallService {
       this.endCallLocal();
     });
 
-    socket.on('call:unavailable', (payload: { callId?: string; chatId?: string }) => {
+    socket.on('call:unavailable', (payload: { callId?: string }) => {
       if (payload?.callId && payload.callId !== this.callId) return;
       this.handlePeerUnavailable();
     });
@@ -296,116 +293,49 @@ export class CallService {
       'call:ice-candidate',
       async (payload: { callId: string; candidate: RTCIceCandidateInit }) => {
         if (payload.callId !== this.callId) return;
-        await this.addIceCandidate(payload.candidate);
+        await this.transport.addIceCandidate(payload.candidate);
       }
     );
   }
 
-  private async addIceCandidate(candidate: RTCIceCandidateInit): Promise<void> {
-    if (!this.pc || !this.remoteDescriptionSet) {
-      this.pendingIceCandidates.push(candidate);
-      return;
-    }
+  private async getIceServers(): Promise<RTCConfiguration> {
+    if (this.iceConfig) return this.iceConfig;
     try {
-      await this.pc.addIceCandidate(new RTCIceCandidate(candidate));
+      const res = await firstValueFrom(
+        this.http.get<{ iceServers: RTCIceServer[] }>(`${environment.apiUrl}/call/ice-config`, {
+          withCredentials: true,
+        })
+      );
+      this.iceConfig = { iceServers: res.iceServers ?? DEFAULT_ICE.iceServers };
     } catch {
-      /* ignore late/duplicate candidates */
+      this.iceConfig = DEFAULT_ICE;
     }
+    return this.iceConfig;
   }
 
-  private async flushPendingIceCandidates(): Promise<void> {
-    if (!this.pc) return;
-    const pending = [...this.pendingIceCandidates];
-    this.pendingIceCandidates = [];
-    for (const c of pending) {
-      try {
-        await this.pc.addIceCandidate(new RTCIceCandidate(c));
-      } catch {
-        /* ignore */
-      }
-    }
-  }
-
-  /**
-   * Phase 1 (WebRTC P2P): direct getUserMedia for testing.
-   * Phase 2 (LiveKit): restore device-busy detection, staged release, and sequential capture fallback.
-   */
-  private async initLocalMedia(callType: CallType): Promise<void> {
-    this.stopLocalStream();
-    if (!navigator.mediaDevices?.getUserMedia) {
-      throw new Error('Microphone/camera not supported in this browser');
-    }
-    if (callType !== 'video') {
-      this.localStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: false,
-      });
-      return;
-    }
-
-    try {
-      this.localStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: true,
-      });
-    } catch (err) {
-      if (!this.isVideoCaptureBlocked(err)) throw err;
-      // Same PC / two browsers: caller may already hold the camera — join with mic only.
-      this.localStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: false,
-      });
-    }
-  }
-
-  private isVideoCaptureBlocked(err: unknown): boolean {
-    const name = (err as DOMException)?.name ?? '';
-    return (
-      name === 'NotReadableError' ||
-      name === 'TrackStartError' ||
-      name === 'AbortError' ||
-      name === 'OverconstrainedError'
-    );
-  }
-
-  private createPeerConnection(): RTCPeerConnection {
-    this.cleanupPeerConnection();
-    this.remoteDescriptionSet = false;
-    this.pendingIceCandidates = [];
-
-    const pc = new RTCPeerConnection(ICE_SERVERS);
-    this.localStream?.getTracks().forEach((track) => {
-      if (this.localStream) {
-        pc.addTrack(track, this.localStream);
-      }
-    });
-    pc.onicecandidate = (ev) => {
-      if (ev.candidate && this.callId) {
-        this.chat.ensureSocket().emit('call:ice-candidate', {
-          callId: this.callId,
-          candidate: ev.candidate.toJSON(),
-        });
-      }
-    };
-    pc.ontrack = (ev) => {
-      const stream = ev.streams[0] ?? new MediaStream([ev.track]);
-      this.remoteStream$.next(stream);
-      this.callState$.next('active');
-    };
-    pc.onconnectionstatechange = () => {
-      if (pc.connectionState === 'failed') {
+  private bindTransportSignaling(): void {
+    this.transport.bindSignalingHandlers({
+      callType: this.callType,
+      onIceCandidate: (candidate) => {
+        if (this.callId) {
+          this.chat.ensureSocket().emit('call:ice-candidate', {
+            callId: this.callId,
+            candidate,
+          });
+        }
+      },
+      onConnectionFailed: () => {
         this.callError$.next('Connection failed');
         this.endCall();
-      }
-    };
-    this.pc = pc;
-    return pc;
+      },
+    });
   }
 
   private async createAndSendOffer(): Promise<void> {
-    const pc = this.createPeerConnection();
-    const offer = await pc.createOffer();
-    await pc.setLocalDescription(offer);
+    const ice = await this.getIceServers();
+    this.bindTransportSignaling();
+    this.transport.createPeerConnection(ice);
+    const offer = await this.transport.createOffer();
     const socket = await this.chat.connectRealtime();
     socket.emit('call:offer', {
       callId: this.callId,
@@ -414,12 +344,10 @@ export class CallService {
   }
 
   private async handleOffer(sdp: RTCSessionDescriptionInit): Promise<void> {
-    const pc = this.createPeerConnection();
-    await pc.setRemoteDescription(new RTCSessionDescription(sdp));
-    this.remoteDescriptionSet = true;
-    await this.flushPendingIceCandidates();
-    const answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
+    const ice = await this.getIceServers();
+    this.bindTransportSignaling();
+    this.transport.createPeerConnection(ice);
+    const answer = await this.transport.handleOffer(sdp);
     const socket = await this.chat.connectRealtime();
     socket.emit('call:answer', {
       callId: this.callId,
@@ -428,39 +356,18 @@ export class CallService {
   }
 
   private async handleAnswer(sdp: RTCSessionDescriptionInit): Promise<void> {
-    if (!this.pc) return;
-    await this.pc.setRemoteDescription(new RTCSessionDescription(sdp));
-    this.remoteDescriptionSet = true;
-    await this.flushPendingIceCandidates();
+    await this.transport.handleAnswer(sdp);
     this.callState$.next('active');
   }
 
-  private stopLocalStream(): void {
-    this.localStream?.getTracks().forEach((t) => t.stop());
-    this.localStream = null;
-  }
-
-  private cleanupPeerConnection(): void {
-    if (this.pc) {
-      this.pc.getSenders().forEach((s) => s.track?.stop());
-      this.pc.getReceivers().forEach((r) => r.track?.stop());
-      this.pc.close();
-    }
-    this.pc = null;
-    this.remoteDescriptionSet = false;
-    this.pendingIceCandidates = [];
-    this.remoteStream$.next(null);
-  }
-
   private resetCallMedia(): void {
-    this.cleanupPeerConnection();
-    this.stopLocalStream();
+    this.transport.releaseLocalMedia();
   }
 
   private handlePeerUnavailable(): void {
     this.clearUnavailableDismissTimer();
     this.ringtone.stop();
-    this.stopLocalStream();
+    this.transport.releaseLocalMedia();
     this.callState$.next('unavailable');
     this.unavailableDismissTimer = setTimeout(() => {
       if (this.callState$.value === 'unavailable') {
@@ -479,8 +386,7 @@ export class CallService {
   private endCallLocal(): void {
     this.clearUnavailableDismissTimer();
     this.ringtone.stop();
-    this.resetCallMedia();
-    this.remoteStream$.next(null);
+    this.transport.releaseLocalMedia();
     this.callId = null;
     this.chatId = null;
     this.peerId = null;
